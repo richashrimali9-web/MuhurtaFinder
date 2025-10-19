@@ -1,0 +1,20 @@
+{
+    "workbench.colorTheme": "Solarized Dark",
+    "python.defaultInterpreterPath": "c:\\Users\\abhis\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
+    "github.copilot.nextEditSuggestions.enabled": true,
+    "git.autofetch": true,
+	"security.allowedUNCHosts": [
+	"vscode-app"
+	],
+    "chat.tools.terminal.autoApprove": {
+        "cmd /c npm run build": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "npm run build": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "cmd": true
+    }
+}
