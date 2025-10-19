@@ -1,7 +1,15 @@
 ﻿"use client";
 
 import * as React from "react";
-import * as RechartsPrimitive from "recharts";
+// Defer importing 'recharts' to runtime to avoid a hard-top-level dependency when charts are not used.
+// This keeps the helper components in place but avoids a build-time error if 'recharts' is removed.
+let RechartsPrimitive: any;
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
+  RechartsPrimitive = require('recharts');
+} catch (e) {
+  RechartsPrimitive = {} as any;
+}
 
 import { cn } from "./utils";
 

@@ -10,7 +10,7 @@
       alias: {
         'vaul': 'vaul',
         'sonner': 'sonner',
-        'recharts': 'recharts',
+  // 'recharts' removed because chart visualization components were removed
         'react-resizable-panels': 'react-resizable-panels',
         'react-hook-form': 'react-hook-form',
         'react-day-picker': 'react-day-picker',
