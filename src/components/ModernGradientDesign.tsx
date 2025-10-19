@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { Card } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -86,8 +86,8 @@ export function ModernGradientDesign() {
   };
 
   const formatShortCurrency = (value: number) => {
-    if (value >= 10000000) return `₹${(value / 10000000).toFixed(1)}Cr`;
-    if (value >= 100000) return `₹${(value / 100000).toFixed(1)}L`;
+    if (value >= 10000000) return `â‚¹${(value / 10000000).toFixed(1)}Cr`;
+    if (value >= 100000) return `â‚¹${(value / 100000).toFixed(1)}L`;
     return formatCurrency(value);
   };
 
@@ -173,14 +173,14 @@ export function ModernGradientDesign() {
                   </div>
                   <Slider
                     value={[parseFloat(principal) || sliderRanges.principal.min]}
-                    onValueChange={(values) => setPrincipal(values[0].toString())}
+                    onValueChange={(values: any) => setPrincipal(values[0].toString())}
                     min={sliderRanges.principal.min}
                     max={sliderRanges.principal.max}
                     step={sliderRanges.principal.step}
                     className="mt-2"
                   />
                   {loanType === 'home' && (
-                    <p className="text-xs text-gray-500">Typical home loan: ₹10L-₹5Cr</p>
+                    <p className="text-xs text-gray-500">Typical home loan: â‚¹10L-â‚¹5Cr</p>
                   )}
                 </div>
 
@@ -202,7 +202,7 @@ export function ModernGradientDesign() {
                   </div>
                   <Slider
                     value={[parseFloat(rate) || sliderRanges.rate.min]}
-                    onValueChange={(values) => setRate(values[0].toFixed(1))}
+                    onValueChange={(values: any) => setRate(values[0].toFixed(1))}
                     min={sliderRanges.rate.min}
                     max={sliderRanges.rate.max}
                     step={sliderRanges.rate.step}
@@ -228,7 +228,7 @@ export function ModernGradientDesign() {
                   </div>
                   <Slider
                     value={[parseFloat(tenure) || sliderRanges.tenure.min]}
-                    onValueChange={(values) => setTenure(values[0].toString())}
+                    onValueChange={(values: any) => setTenure(values[0].toString())}
                     min={sliderRanges.tenure.min}
                     max={sliderRanges.tenure.max}
                     step={sliderRanges.tenure.step}
@@ -498,3 +498,4 @@ export function ModernGradientDesign() {
     </div>
   );
 }
+

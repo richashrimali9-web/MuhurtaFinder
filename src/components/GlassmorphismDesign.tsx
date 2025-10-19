@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { Card } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -36,8 +36,8 @@ export function GlassmorphismDesign() {
   };
 
   const formatShortCurrency = (value: number) => {
-    if (value >= 10000000) return `₹${(value / 10000000).toFixed(1)}Cr`;
-    if (value >= 100000) return `₹${(value / 100000).toFixed(1)}L`;
+    if (value >= 10000000) return `â‚¹${(value / 10000000).toFixed(1)}Cr`;
+    if (value >= 100000) return `â‚¹${(value / 100000).toFixed(1)}L`;
     return formatCurrency(value);
   };
 
@@ -168,11 +168,11 @@ export function GlassmorphismDesign() {
                     min={sliderRanges.principal.min}
                     max={sliderRanges.principal.max}
                   />
-                  <span className="absolute right-4 top-6 -translate-y-1/2 text-gray-500 text-sm">₹</span>
+                  <span className="absolute right-4 top-6 -translate-y-1/2 text-gray-500 text-sm">â‚¹</span>
                 </div>
                 <Slider
                   value={[parseFloat(principal) || sliderRanges.principal.min]}
-                  onValueChange={(values) => setPrincipal(values[0].toString())}
+                  onValueChange={(values: any) => setPrincipal(values[0].toString())}
                   min={sliderRanges.principal.min}
                   max={sliderRanges.principal.max}
                   step={sliderRanges.principal.step}
@@ -195,7 +195,7 @@ export function GlassmorphismDesign() {
                 </div>
                 <Slider
                   value={[parseFloat(rate) || sliderRanges.rate.min]}
-                  onValueChange={(values) => setRate(values[0].toFixed(1))}
+                  onValueChange={(values: any) => setRate(values[0].toFixed(1))}
                   min={sliderRanges.rate.min}
                   max={sliderRanges.rate.max}
                   step={sliderRanges.rate.step}
@@ -217,7 +217,7 @@ export function GlassmorphismDesign() {
                 </div>
                 <Slider
                   value={[parseFloat(tenure) || sliderRanges.tenure.min]}
-                  onValueChange={(values) => setTenure(values[0].toString())}
+                  onValueChange={(values: any) => setTenure(values[0].toString())}
                   min={sliderRanges.tenure.min}
                   max={sliderRanges.tenure.max}
                   step={sliderRanges.tenure.step}
@@ -371,9 +371,10 @@ export function GlassmorphismDesign() {
 
         {/* Footer Note */}
         <p className="text-center text-gray-600 text-xs mt-8 backdrop-blur-sm bg-white/30 p-4 rounded-2xl border border-white/40">
-          💎 Premium calculator • All calculations are done locally in your browser
+          ðŸ’Ž Premium calculator â€¢ All calculations are done locally in your browser
         </p>
       </div>
     </div>
   );
 }
+

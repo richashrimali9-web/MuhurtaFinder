@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { Card } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -97,10 +97,10 @@ export function ChartVisualizationDesign() {
   };
 
   const formatShortCurrency = (value: number) => {
-    if (value >= 10000000) return `₹${(value / 10000000).toFixed(1)}Cr`;
-    if (value >= 100000) return `₹${(value / 100000).toFixed(1)}L`;
-    if (value >= 1000) return `₹${(value / 1000).toFixed(0)}K`;
-    return `₹${value.toFixed(0)}`;
+    if (value >= 10000000) return `â‚¹${(value / 10000000).toFixed(1)}Cr`;
+    if (value >= 100000) return `â‚¹${(value / 100000).toFixed(1)}L`;
+    if (value >= 1000) return `â‚¹${(value / 1000).toFixed(0)}K`;
+    return `â‚¹${value.toFixed(0)}`;
   };
 
   // Slider ranges based on loan type
@@ -170,7 +170,7 @@ export function ChartVisualizationDesign() {
             {/* Input Fields with Sliders */}
             <div className="space-y-5">
               <div>
-                <Label className="mb-2 block text-gray-700">Principal Amount (₹)</Label>
+                <Label className="mb-2 block text-gray-700">Principal Amount (â‚¹)</Label>
                 <Input
                   type="number"
                   value={principal}
@@ -181,7 +181,7 @@ export function ChartVisualizationDesign() {
                 />
                 <Slider
                   value={[parseFloat(principal) || sliderRanges.principal.min]}
-                  onValueChange={(values) => setPrincipal(values[0].toString())}
+                  onValueChange={(values: any) => setPrincipal(values[0].toString())}
                   min={sliderRanges.principal.min}
                   max={sliderRanges.principal.max}
                   step={sliderRanges.principal.step}
@@ -201,7 +201,7 @@ export function ChartVisualizationDesign() {
                 />
                 <Slider
                   value={[parseFloat(rate) || sliderRanges.rate.min]}
-                  onValueChange={(values) => setRate(values[0].toFixed(1))}
+                  onValueChange={(values: any) => setRate(values[0].toFixed(1))}
                   min={sliderRanges.rate.min}
                   max={sliderRanges.rate.max}
                   step={sliderRanges.rate.step}
@@ -220,7 +220,7 @@ export function ChartVisualizationDesign() {
                 />
                 <Slider
                   value={[parseFloat(tenure) || sliderRanges.tenure.min]}
-                  onValueChange={(values) => setTenure(values[0].toString())}
+                  onValueChange={(values: any) => setTenure(values[0].toString())}
                   min={sliderRanges.tenure.min}
                   max={sliderRanges.tenure.max}
                   step={sliderRanges.tenure.step}
@@ -467,3 +467,4 @@ export function ChartVisualizationDesign() {
     </div>
   );
 }
+

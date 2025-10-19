@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { Sparkles, Calendar, User, Clock, BookOpen, Menu, X, Sun } from 'lucide-react';
 import { Button } from './components/ui/button';
 import { MuhurtaFinder } from './components/MuhurtaFinder';
@@ -48,7 +48,7 @@ export default function App() {
 
             {/* Desktop Navigation */}
             <nav className="hidden lg:flex items-center gap-2">
-              {navigation.map((item) => (
+              {navigation.map((item: any) => (
                 <Button
                   key={item.id}
                   variant={currentView === item.id ? 'default' : 'ghost'}
@@ -75,7 +75,7 @@ export default function App() {
           {/* Mobile Navigation */}
           {mobileMenuOpen && (
             <nav className="lg:hidden mt-4 pb-4 flex flex-col gap-2">
-              {navigation.map((item) => (
+              {navigation.map((item: any) => (
                 <Button
                   key={item.id}
                   variant={currentView === item.id ? 'default' : 'ghost'}
@@ -115,11 +115,11 @@ export default function App() {
             <div>
               <h3 className="mb-3">Features</h3>
               <ul className="text-sm text-muted-foreground space-y-1">
-                <li>✓ Multiple event types supported</li>
-                <li>✓ Personalized muhurta calculations</li>
-                <li>✓ Daily Panchang with details</li>
-                <li>✓ Countdown timers & reminders</li>
-                <li>✓ Comprehensive knowledge base</li>
+                <li>âœ“ Multiple event types supported</li>
+                <li>âœ“ Personalized muhurta calculations</li>
+                <li>âœ“ Daily Panchang with details</li>
+                <li>âœ“ Countdown timers & reminders</li>
+                <li>âœ“ Comprehensive knowledge base</li>
               </ul>
             </div>
             
@@ -133,10 +133,11 @@ export default function App() {
           </div>
           
           <div className="mt-8 pt-8 border-t border-purple-100 dark:border-purple-800 text-center text-sm text-muted-foreground">
-            <p>© 2025 Astro Event Planner. Built with Vedic wisdom and modern technology.</p>
+            <p>Â© 2025 Astro Event Planner. Built with Vedic wisdom and modern technology.</p>
           </div>
         </div>
       </footer>
     </div>
   );
 }
+

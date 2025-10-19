@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+﻿import { useState, useEffect, useMemo } from 'react';
 import { Calendar, MapPin, Sparkles, Filter, Download, Share2, Info, TrendingUp, TrendingDown } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
@@ -312,7 +312,7 @@ END:VCALENDAR`;
               <Checkbox
                 id="weekends"
                 checked={excludeWeekends}
-                onCheckedChange={(checked) => setExcludeWeekends(checked as boolean)}
+                onCheckedChange={(checked: any) => setExcludeWeekends(checked as boolean)}
               />
               <Label htmlFor="weekends">Exclude weekends</Label>
             </div>
@@ -424,7 +424,7 @@ END:VCALENDAR`;
                     
                     {festivalOnDate && (
                       <div className="p-2 bg-amber-50 dark:bg-amber-950/20 rounded border border-amber-200 dark:border-amber-800">
-                        <p className="text-sm">🎉 {festivalOnDate.name}</p>
+                        <p className="text-sm">ðŸŽ‰ {festivalOnDate.name}</p>
                       </div>
                     )}
                     
@@ -497,7 +497,7 @@ END:VCALENDAR`;
                                               ) : factor.value < 0 ? (
                                                 <TrendingDown className="w-4 h-4 text-red-600" />
                                               ) : (
-                                                <span className="w-4 h-4 text-gray-400">○</span>
+                                                <span className="w-4 h-4 text-gray-400">â—‹</span>
                                               )}
                                               <span className="font-medium">{factor.name}</span>
                                             </div>
@@ -553,3 +553,4 @@ END:VCALENDAR`;
     </div>
   );
 }
+
