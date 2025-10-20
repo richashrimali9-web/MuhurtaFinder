@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -6,37 +5,62 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Astro Event Planner - Find Auspicious Dates & Times</title>
     
-    <!-- Google AdSense script here -->
+    <!-- Corrected AdSense and Analytics scripts to handle environments without `import.meta` -->
     <script>
-      // Google AdSense - Only loads in production with valid Publisher ID
-      if (import.meta.env.PROD && import.meta.env.VITE_ADSENSE_ID) {
+      const isProd = typeof import !== 'undefined' && typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.PROD;
+      const adsenseId = isProd ? (import.meta.env ? import.meta.env.VITE_ADSENSE_ID : null) : null;
+      const gaMeasurementId = isProd ? (import.meta.env ? import.meta.env.VITE_GA_MEASUREMENT_ID : null) : null;
+
+      if (isProd && adsenseId) {
         const script = document.createElement('script');
         script.async = true;
-        script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${import.meta.env.VITE_ADSENSE_ID}`;
+        script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseId}`;
         script.crossOrigin = 'anonymous';
         document.head.appendChild(script);
       }
-    </script>
-    
-    <!-- Google Analytics script here -->
-    <script>
-      // Google Analytics - Only loads in production with valid Measurement ID
-      if (import.meta.env.PROD && import.meta.env.VITE_GA_MEASUREMENT_ID) {
-        // Load gtag script
+
+      if (isProd && gaMeasurementId) {
         const gtagScript = document.createElement('script');
         gtagScript.async = true;
-        gtagScript.src = `https://www.googletagmanager.com/gtag/js?id=${import.meta.env.VITE_GA_MEASUREMENT_ID}`;
+        gtagScript.src = `https://www.googletagmanager.com/gtag/js?id=${gaMeasurementId}`;
         document.head.appendChild(gtagScript);
-        
-        // Initialize gtag
+
         window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
+        function gtag() { dataLayer.push(arguments); }
         gtag('js', new Date());
-        gtag('config', import.meta.env.VITE_GA_MEASUREMENT_ID);
-        
-        // Make gtag available globally
+        gtag('config', gaMeasurementId);
         window.gtag = gtag;
       }
+    </script>
+
+    <!-- Added SEO meta tags -->
+    <meta name="description" content="Astro Event Planner helps you find auspicious dates and times based on Vedic astrology principles. Plan your events with confidence!" />
+    <meta name="keywords" content="Astro Event Planner, Muhurta Finder, Vedic Astrology, Auspicious Dates, Panchang, Choghadiya, Personalized Muhurta" />
+    <meta name="author" content="Astro Event Planner Team" />
+    <meta property="og:title" content="Astro Event Planner - Find Auspicious Dates & Times" />
+    <meta property="og:description" content="Find auspicious dates and times for your events based on Vedic astrology principles." />
+    <meta property="og:image" content="/assets/astro-event-planner-og-image.jpg" />
+    <meta property="og:url" content="https://astroeventplanner.com" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Astro Event Planner - Find Auspicious Dates & Times" />
+    <meta name="twitter:description" content="Find auspicious dates and times for your events based on Vedic astrology principles." />
+    <meta name="twitter:image" content="/assets/astro-event-planner-twitter-image.jpg" />
+
+    <!-- Added Structured Data and Canonical Tag -->
+    <link rel="canonical" href="https://astroeventplanner.com" />
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Astro Event Planner",
+      "url": "https://astroeventplanner.com",
+      "description": "Astro Event Planner helps you find auspicious dates and times based on Vedic astrology principles.",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://astroeventplanner.com/?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
     </script>
   </head>
 
@@ -44,4 +68,4 @@
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
-</html>  
+</html>
