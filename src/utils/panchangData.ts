@@ -115,7 +115,7 @@ export const auspiciousTithis = [
 export const inauspiciousYogas = ['Vishkumbha', 'Atiganda', 'Shula', 'Ganda', 'Vyaghata', 'Vajra', 'Vyatipata', 'Parigha', 'Vaidhriti'];
 
 // Mock Panchang calculation based on date
-export async function calculatePanchang(date: Date, location = 'Delhi', lat?: number, lon?: number): Promise<PanchangData> {
+export async function calculatePanchang(date: Date, _location = 'Delhi', _lat?: number, _lon?: number): Promise<PanchangData> {
   const dayOfYear = Math.floor((date.getTime() - new Date(date.getFullYear(), 0, 0).getTime()) / 86400000);
   
   const tithiIndex = (dayOfYear * 12 + Math.floor(Math.random() * 3)) % 15;

@@ -1,6 +1,6 @@
 import html2canvas from 'html2canvas';
 
-export async function generateCardImage(cardElementId: string, fileName: string): Promise<Blob | null> {
+export async function generateCardImage(cardElementId: string, _fileName: string): Promise<Blob | null> {
   const cardElement = document.getElementById(cardElementId);
   if (!cardElement) return null;
 
@@ -73,8 +73,8 @@ export async function generateCardImage(cardElementId: string, fileName: string)
   }
 }
 
-export async function shareCardViaWhatsApp(cardElementId: string, city: string): Promise<void> {
-  const blob = await generateCardImage(cardElementId, 'panchang.png');
+export async function shareCardViaWhatsApp(_cardElementId: string, city: string): Promise<void> {
+  const blob = await generateCardImage(_cardElementId, 'panchang.png');
   if (!blob) {
     alert('Failed to generate card image');
     return;
@@ -112,7 +112,7 @@ export async function shareCardViaWhatsApp(cardElementId: string, city: string):
   }
 }
 
-export async function shareCardViaTwitter(cardElementId: string, city: string): Promise<void> {
+export async function shareCardViaTwitter(_cardElementId: string, city: string): Promise<void> {
   // Twitter doesn't support direct image sharing from web
   // We'll open Twitter with a pre-filled message
   const message = encodeURIComponent(`📅 Today's Panchang for ${city}!\n\n✨ Astro Event Planner - Daily Panchang Guide\n🙏 #Panchang #Muhurta\n\nastroeventplanner.com`);
@@ -120,15 +120,15 @@ export async function shareCardViaTwitter(cardElementId: string, city: string): 
   window.open(twitterUrl, '_blank');
 }
 
-export async function shareCardViaFacebook(cardElementId: string): Promise<void> {
+export async function shareCardViaFacebook(_cardElementId: string): Promise<void> {
   // Facebook sharing requires page to be shared through their dialog
   const message = encodeURIComponent('Check out today\'s Panchang from Astro Event Planner! 📅 astroeventplanner.com');
   const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}&quote=${message}`;
   window.open(facebookUrl, '_blank');
 }
 
-export async function shareCardViaInstagram(cardElementId: string, city: string): Promise<void> {
-  const blob = await generateCardImage(cardElementId, 'panchang.png');
+export async function shareCardViaInstagram(_cardElementId: string, _city: string): Promise<void> {
+  const blob = await generateCardImage(_cardElementId, 'panchang.png');
   if (!blob) {
     alert('Failed to generate card image');
     return;
@@ -144,7 +144,7 @@ export async function shareCardViaInstagram(cardElementId: string, city: string)
     } else {
       // Fallback: Open Instagram with message
       alert('Please save the card and share it on Instagram. Card image available in browser downloads. 🙏');
-      const blob2 = await generateCardImage(cardElementId, `Panchang-${new Date().toISOString().split('T')[0]}.png`);
+      const blob2 = await generateCardImage(_cardElementId, `Panchang-${new Date().toISOString().split('T')[0]}.png`);
       if (blob2) {
         const url = URL.createObjectURL(blob2);
         const link = document.createElement('a');
@@ -159,8 +159,8 @@ export async function shareCardViaInstagram(cardElementId: string, city: string)
   }
 }
 
-export async function downloadCardImage(cardElementId: string, fileName: string): Promise<void> {
-  const blob = await generateCardImage(cardElementId, fileName);
+export async function downloadCardImage(cardElementId: string, _fileName: string): Promise<void> {
+  const blob = await generateCardImage(cardElementId, _fileName);
   if (!blob) {
     alert('Failed to generate card image');
     return;
@@ -169,7 +169,7 @@ export async function downloadCardImage(cardElementId: string, fileName: string)
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  link.download = fileName;
+  link.download = _fileName;
   link.click();
   URL.revokeObjectURL(url);
 }

@@ -114,12 +114,12 @@ export default function App() {
             
             <div>
               <h3 className="mb-3">Features</h3>
-              <ul className="text-sm text-muted-foreground space-y-1">
-                <li>âœ“ Multiple event types supported</li>
-                <li>âœ“ Personalized muhurta calculations</li>
-                <li>âœ“ Daily Panchang with details</li>
-                <li>âœ“ Countdown timers & reminders</li>
-                <li>âœ“ Comprehensive knowledge base</li>
+                <ul className="text-sm text-muted-foreground space-y-1">
+                <li>✓ Multiple event types supported</li>
+                <li>✓ Personalized muhurta calculations</li>
+                <li>✓ Daily Panchang with details</li>
+                <li>✓ Countdown timers & reminders</li>
+                <li>✓ Comprehensive knowledge base</li>
               </ul>
             </div>
             
@@ -132,8 +132,8 @@ export default function App() {
             </div>
           </div>
           
-          <div className="mt-8 pt-8 border-t border-purple-100 dark:border-purple-800 text-center text-sm text-muted-foreground">
-            <p>Â© 2025 Astro Event Planner. Built with Vedic wisdom and modern technology.</p>
+            <div className="mt-8 pt-8 border-t border-purple-100 dark:border-purple-800 text-center text-sm text-muted-foreground">
+            <p>© 2025 Astro Event Planner. Built with Vedic wisdom and modern technology.</p>
           </div>
         </div>
       </footer>

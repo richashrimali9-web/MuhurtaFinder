@@ -1,13 +1,18 @@
-﻿import { useState, useEffect, useMemo } from 'react';
-import { Calendar, MapPin, Sparkles, Filter, Download, Share2, Info, TrendingUp, TrendingDown } from 'lucide-react';
+﻿import { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom/client';
+import { Calendar, Clock, MapPin, Sparkles, Filter, Download, Share2, Info, TrendingUp, TrendingDown } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
-import { Select } from './ui/select';
+// Select UI not used in current UI; removed to avoid unused import
 import { Label } from './ui/label';
 import { Checkbox } from './ui/checkbox';
 import { Badge } from './ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from './ui/dialog';
-import { calculatePanchang, getMuhurtaForEvent, getQualityBreakdown, eventTypes, getFestivalsForMonth, nakshatras, tithis } from '../utils/panchangData';
+import { calculatePanchang, getMuhurtaForEvent, getQualityBreakdown, eventTypes, getFestivalsForMonth } from '../utils/panchangData';
+import TimeslotList from './TimeslotListClean';
+import { generateTimeSlots } from '../utils/timeslots';
+import { generateCardImage } from '../utils/cardGenerator';
+import SmallShareCard from './ShareableCard/SmallShareCard';
 
 export function MuhurtaFinder() {
   // Cities array must be declared before useState that uses it
@@ -25,9 +30,7 @@ export function MuhurtaFinder() {
     { name: 'Jodhpur', lat: 26.2389, lon: 73.0243 },
     { name: 'Pali', lat: 25.7725, lon: 73.3234 }
   ];
-  
   const [eventType, setEventType] = useState('marriage');
-  const [location, setLocation] = useState('Delhi');
   const [selectedCity, setSelectedCity] = useState(cities[0]);
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
@@ -36,8 +39,8 @@ export function MuhurtaFinder() {
   
   // Filter states
   const [excludeWeekends, setExcludeWeekends] = useState(false);
-  const [preferredNakshatras, setPreferredNakshatras] = useState<string[]>([]);
-  const [excludedTithis, setExcludedTithis] = useState<string[]>([]);
+  const [preferredNakshatras, _setPreferredNakshatras] = useState<string[]>([]);
+  const [excludedTithis, _setExcludedTithis] = useState<string[]>([]);
   const [minScore, setMinScore] = useState(60);
   
   const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -46,6 +49,7 @@ export function MuhurtaFinder() {
   const [muhurtaDates, setMuhurtaDates] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [sharing, setSharing] = useState(false);
   
   useEffect(() => {
     let isMounted = true;
@@ -61,7 +65,7 @@ export function MuhurtaFinder() {
         console.log(`Fetching ${daysInMonth} days for ${months[selectedMonth]} ${selectedYear}`);
         
         // Create array of all dates in the month
-        const datesToFetch = [];
+        const datesToFetch: Date[] = [];
         for (let day = 1; day <= daysInMonth; day++) {
           const date = new Date(selectedYear, selectedMonth, day);
           // Skip weekends early if filter is on
@@ -73,7 +77,7 @@ export function MuhurtaFinder() {
         
         // Batch process to avoid rate limiting (process 10 at a time)
         const batchSize = 10;
-        const allResults = [];
+        const allResults: Array<any> = [];
         
         for (let i = 0; i < datesToFetch.length; i += batchSize) {
           const batch = datesToFetch.slice(i, i + batchSize);
@@ -148,22 +152,14 @@ export function MuhurtaFinder() {
     fetchDates();
     return () => { isMounted = false; };
   }, [eventType, selectedCity, selectedMonth, selectedYear, excludeWeekends, preferredNakshatras, excludedTithis, minScore, sortBy]);
-  
+
   const festivals = getFestivalsForMonth(selectedYear, selectedMonth);
   
   const selectedEvent = eventTypes.find(e => e.value === eventType);
-  
+
   const exportToCalendar = (date: Date) => {
     const event = selectedEvent?.label || 'Auspicious Event';
-    const icsContent = `BEGIN:VCALENDAR
-VERSION:2.0
-BEGIN:VEVENT
-DTSTART:${date.toISOString().replace(/[-:]/g, '').split('.')[0]}Z
-SUMMARY:${event}
-DESCRIPTION:Muhurta for ${event}
-END:VEVENT
-END:VCALENDAR`;
-    
+    const icsContent = `BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nDTSTART:${date.toISOString().replace(/[-:]/g, '').split('.')[0]}Z\nSUMMARY:${event}\nDESCRIPTION:Muhurta for ${event}\nEND:VEVENT\nEND:VCALENDAR`;
     const blob = new Blob([icsContent], { type: 'text/calendar' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -171,39 +167,137 @@ END:VCALENDAR`;
     a.download = 'muhurta.ics';
     a.click();
   };
-  
-  const shareDate = async (date: Date, score: number) => {
-    const text = `Best Muhurta for ${selectedEvent?.label}: ${date.toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} - Quality Score: ${score}%`;
-    
-    // Try Web Share API first
-    if (navigator.share) {
+
+  const shareDate = async (item: any, topSlot?: any) => {
+    if (!item) {
+      console.warn('shareDate called without item');
+      return;
+    }
+    const date: Date | undefined = item.date;
+    const dayQuality = item.score ?? 'N/A';
+    const topStart = topSlot ? new Date(topSlot.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+    const topEnd = topSlot ? new Date(topSlot.end).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+
+    const title = date
+      ? `${selectedEvent?.label} — ${date.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' })}`
+      : `${selectedEvent?.label}`;
+
+    const lines = [title, `Day quality: ${dayQuality}%`];
+
+    if (topSlot) {
+      lines.push(`Suggested time: ${topStart} – ${topEnd} (Time quality: ${topSlot.score}%)`);
+    }
+    if (item.panchang) {
+      lines.push(`Tithi: ${item.panchang.tithi} · Nakshatra: ${item.panchang.nakshatra}`);
+    }
+
+    const text = lines.join('\n');
+
+  setSharing(true);
+  try {
+
+  // Try to generate an image snapshot of a small card and share that when possible
+  if (typeof document !== 'undefined') {
       try {
-        await navigator.share({ text });
-        return;
-      } catch (error) {
-        // If share fails, fall back to clipboard
-        console.log('Share failed, falling back to clipboard');
+        const cardId = 'muhurta-share-card-small';
+        const container = document.createElement('div');
+        container.style.position = 'fixed';
+        container.style.left = '-9999px';
+        container.style.top = '0';
+        document.body.appendChild(container);
+
+        const root = ReactDOM.createRoot(container);
+        root.render(
+          <SmallShareCard
+            id={cardId}
+            date={date || new Date()}
+            city={selectedCity.name}
+            dayQuality={dayQuality}
+            topSlot={topSlot}
+            tithi={item.panchang?.tithi}
+            nakshatra={item.panchang?.nakshatra}
+            sunrise={item.panchang?.sunrise}
+            sunset={item.panchang?.sunset}
+          />
+        );
+        await new Promise((resolve) => setTimeout(resolve, 120));
+
+          try {
+          const fileName = `muhurta-${(date || new Date()).toISOString().slice(0,10)}.png`;
+          const blob = await generateCardImage({ cardElementId: cardId, fileName, width: 420, height: 260, scale: 2, backgroundColor: '#ffffff' });
+          try { root.unmount(); } catch (e) { /* ignore */ }
+          document.body.removeChild(container);
+
+          if (blob) {
+            const file = new File([blob], fileName, { type: 'image/png' });
+            try {
+              // Prefer file sharing when available
+              if (typeof (navigator as any).canShare === 'function' && (navigator as any).canShare({ files: [file] })) {
+                try {
+                  await (navigator as any).share({ files: [file], title, text });
+                  return;
+                } catch (err) {
+                  console.log('File share failed, falling back to fallback methods', err);
+                }
+              } else if (navigator.share) {
+                // If file sharing not supported, try plain text sharing (may open share dialog on mobile)
+                try {
+                  await navigator.share({ title, text });
+                  return;
+                } catch (err) {
+                  console.log('Text share failed or cancelled', err);
+                }
+              }
+            } catch (err) {
+              console.log('Share attempt failed, will try download fallback', err);
+            }
+
+            // Fallback: download the image so user can manually share
+            try {
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = fileName;
+              a.click();
+              URL.revokeObjectURL(url);
+              return;
+            } catch (err) {
+              console.log('Download fallback failed', err);
+            }
+          }
+        } catch (err) {
+          console.log('Image generation failed, falling back to text share', err);
+        }
+      } catch (err) {
+        console.log('Image generation failed, falling back to text share', err);
       }
     }
-    
-    // Fallback to clipboard
+
     try {
-      await navigator.clipboard.writeText(text);
-      alert('Copied to clipboard!');
-    } catch (error) {
-      // Final fallback - create a temporary textarea
-      const textarea = document.createElement('textarea');
-      textarea.value = text;
-      textarea.style.position = 'fixed';
-      textarea.style.opacity = '0';
-      document.body.appendChild(textarea);
-      textarea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textarea);
-      alert('Copied to clipboard!');
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+        alert('Summary copied to clipboard!');
+        return;
+      }
+    } catch (err) {
+      console.log('Clipboard write failed', err);
+    }
+
+    // Last-resort fallback
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+    alert('Summary copied to clipboard!');
+    } finally {
+      setSharing(false);
     }
   };
-  
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -248,7 +342,7 @@ END:VCALENDAR`;
                 const city = cities.find(c => c.name === e.target.value);
                 if (city) {
                   setSelectedCity(city);
-                  setLocation(city.name);
+                  setSelectedCity(city);
                 }
               }}
               className="w-full rounded-md border border-input bg-background px-3 py-2"
@@ -385,14 +479,23 @@ END:VCALENDAR`;
                 f.date.getDate() === item.date.getDate()
               );
               
+              const topSlot = generateTimeSlots({
+                date: item.date,
+                sunrise: item.panchang?.sunrise,
+                sunset: item.panchang?.sunset,
+                tithi: item.panchang?.tithi,
+                nakshatra: item.panchang?.nakshatra,
+                quality: item.score,
+              }, 60, 30)[0];
+
               return (
-                <Card 
-                  key={idx}
-                  className={`p-4 transition-all hover:shadow-lg ${
-                    idx === 0 && !item.isPast ? 'ring-2 ring-purple-500 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20' : ''
-                  } ${item.isPast ? 'opacity-60' : ''}`}
-                >
-                  <div className="space-y-3">
+                      <Card 
+                        key={idx}
+                        className={`p-4 transition-all hover:shadow-lg ${
+                          idx === 0 && !item.isPast ? 'ring-2 ring-purple-500 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20' : ''
+                        } ${item.isPast ? 'opacity-60' : ''}`}
+                      >
+                        <div className="space-y-3">
                     <div className="flex items-start justify-between">
                       <div>
                         <div className="flex items-center gap-2">
@@ -415,49 +518,80 @@ END:VCALENDAR`;
                         </p>
                       </div>
                       <div className="text-right">
-                        <div className={`text-2xl ${item.score >= 80 ? 'text-green-600' : item.score >= 60 ? 'text-yellow-600' : 'text-orange-600'}`}>
-                          {item.score}%
+                        <div className="flex items-center justify-end gap-3">
+                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-sm font-medium ${item.score >= 80 ? 'bg-green-100 text-green-800' : item.score >= 60 ? 'bg-yellow-100 text-yellow-800' : 'bg-orange-100 text-orange-800'}`}>
+                            <Calendar className="w-3 h-3" />
+                            Day
+                          </span>
+                          <div className={`text-2xl ${item.score >= 80 ? 'text-green-600' : item.score >= 60 ? 'text-yellow-600' : 'text-orange-600'}`}>
+                            {item.score}%
+                          </div>
                         </div>
-                        <p className="text-xs text-muted-foreground">Quality</p>
+                        <p className="text-xs text-muted-foreground">Day quality</p>
                       </div>
                     </div>
-                    
-                    {festivalOnDate && (
-                      <div className="p-2 bg-amber-50 dark:bg-amber-950/20 rounded border border-amber-200 dark:border-amber-800">
-                        <p className="text-sm">ðŸŽ‰ {festivalOnDate.name}</p>
+                    {/* Prominent featured timeslot (top suggestion) */}
+                    {topSlot && (
+                      <div className={`mt-3 p-4 rounded-lg flex items-center justify-between overflow-visible shadow-lg relative ${item.isPast ? 'bg-white/5 text-muted-foreground border border-gray-100' : 'bg-gradient-to-r from-purple-600 to-pink-500 text-white'}`} style={{ zIndex: 2 }}>
+                        <div>
+                          <div className="text-lg md:text-xl font-semibold leading-tight">
+                            {new Date(topSlot.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} — {new Date(topSlot.end).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </div>
+                          <div className="text-xs opacity-90">Featured suggested time</div>
+                        </div>
+                        <div className="text-right flex flex-col items-end">
+                          <div className="flex items-center gap-2">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-sm font-medium bg-white/20 text-white/90">
+                              <Clock className="w-3 h-3" />
+                              Time
+                            </span>
+                            <div className="text-2xl font-bold">{topSlot.score}%</div>
+                          </div>
+                          <div className="text-xs opacity-90">Time slot quality</div>
+                        </div>
                       </div>
                     )}
                     
-                    <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div>
+                    {festivalOnDate && (
+                      <div className="p-2 bg-amber-50 dark:bg-amber-950/20 rounded border border-amber-200 dark:border-amber-800">
+                        <p className="text-sm">🎉 {festivalOnDate.name}</p>
+                      </div>
+                    )}
+                    
+                    {/* Compact horizontal info row */}
+                    <div className="flex flex-wrap items-center gap-4 text-sm">
+                      <div className="flex items-center gap-2">
                         <span className="text-muted-foreground">Tithi:</span>
-                        <p>{item.panchang.tithi}</p>
+                        <span className="font-medium">{item.panchang.tithi}</span>
                       </div>
-                      <div>
+                      <div className="flex items-center gap-2">
                         <span className="text-muted-foreground">Nakshatra:</span>
-                        <p>{item.panchang.nakshatra}</p>
+                        <span className="font-medium">{item.panchang.nakshatra}</span>
                       </div>
-                      <div>
+                      <div className="flex items-center gap-2">
                         <span className="text-muted-foreground">Sunrise:</span>
-                        <p>{item.panchang.sunrise}</p>
+                        <span className="font-medium">{item.panchang.sunrise}</span>
                       </div>
-                      <div>
+                      <div className="flex items-center gap-2">
                         <span className="text-muted-foreground">Sunset:</span>
-                        <p>{item.panchang.sunset}</p>
+                        <span className="font-medium">{item.panchang.sunset}</span>
                       </div>
                     </div>
                     
                     {!item.isPast && (
-                      <div className="flex gap-2 pt-2">
+                      <div className="flex gap-2 pt-2 items-center">
+                        {/* Suggested times (kept compact) */}
+                        <TimeslotList dateInfo={item} />
                         <Dialog>
                           <DialogTrigger asChild>
                             <Button
                               size="sm"
                               variant="outline"
-                              className="flex-1 gap-1"
+                              className="w-9 h-9 p-0 flex items-center justify-center"
+                              title="Why this date"
+                              aria-label="Why this date"
                             >
-                              <Info className="w-3 h-3" />
-                              Why?
+                              <Info className="w-4 h-4" />
                             </Button>
                           </DialogTrigger>
                           <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
@@ -497,7 +631,7 @@ END:VCALENDAR`;
                                               ) : factor.value < 0 ? (
                                                 <TrendingDown className="w-4 h-4 text-red-600" />
                                               ) : (
-                                                <span className="w-4 h-4 text-gray-400">â—‹</span>
+                                                <span className="w-4 h-4 text-gray-400">◆</span>
                                               )}
                                               <span className="font-medium">{factor.name}</span>
                                             </div>
@@ -521,20 +655,30 @@ END:VCALENDAR`;
                         <Button
                           size="sm"
                           variant="outline"
-                          className="flex-1 gap-1"
+                          className="w-9 h-9 p-0 flex items-center justify-center"
                           onClick={() => exportToCalendar(item.date)}
+                          title="Export to calendar"
+                          aria-label="Export to calendar"
                         >
-                          <Download className="w-3 h-3" />
-                          Export
+                          <Download className="w-4 h-4" />
                         </Button>
                         <Button
                           size="sm"
                           variant="outline"
-                          className="flex-1 gap-1"
-                          onClick={() => shareDate(item.date, item.score)}
+                          className="w-9 h-9 p-0 flex items-center justify-center"
+                          onClick={() => shareDate(item, topSlot)}
+                          disabled={sharing}
+                          title="Share date"
+                          aria-label="Share date"
                         >
-                          <Share2 className="w-3 h-3" />
-                          Share
+                          {sharing ? (
+                            <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" strokeOpacity="0.25" />
+                              <path d="M22 12a10 10 0 0 1-10 10" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
+                            </svg>
+                          ) : (
+                            <Share2 className="w-4 h-4" />
+                          )}
                         </Button>
                       </div>
                     )}
