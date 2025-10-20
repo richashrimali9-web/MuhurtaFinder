@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Astro Event Planner - Find Auspicious Dates & Times</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23663399' d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z'/%3E%3C/svg%3E" />
+    
+    <!-- Production-ready AdSense and Analytics scripts - COMMENTED OUT FOR TESTING -->
+    <!-- 
+    <script>
+      // Detect production environment by hostname
+      const isProd = window.location.hostname === 'astroeventplanner.com';
+      
+      // Replace these placeholders with actual IDs in production deployment
+      const adsenseId = 'YOUR_ADSENSE_ID';
+      const gaMeasurementId = 'YOUR_GA_MEASUREMENT_ID';
+
+      if (isProd && adsenseId && adsenseId !== 'YOUR_ADSENSE_ID') {
+        const script = document.createElement('script');
+        script.async = true;
+        script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseId}`;
+        script.crossOrigin = 'anonymous';
+        document.head.appendChild(script);
+      }
+
+      if (isProd && gaMeasurementId && gaMeasurementId !== 'YOUR_GA_MEASUREMENT_ID') {
+        const gtagScript = document.createElement('script');
+        gtagScript.async = true;
+        gtagScript.src = `https://www.googletagmanager.com/gtag/js?id=${gaMeasurementId}`;
+        document.head.appendChild(gtagScript);
+
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', gaMeasurementId);
+        window.gtag = gtag;
+      }
+    </script>
+    -->
+
+    <!-- Added SEO meta tags -->
+    <meta name="description" content="Astro Event Planner helps you find auspicious dates and times based on Vedic astrology principles. Plan your events with confidence!" />
+    <meta name="keywords" content="Astro Event Planner, Muhurta Finder, Vedic Astrology, Auspicious Dates, Panchang, Choghadiya, Personalized Muhurta" />
+    <meta name="author" content="Astro Event Planner Team" />
+    <meta property="og:title" content="Astro Event Planner - Find Auspicious Dates & Times" />
+    <meta property="og:description" content="Find auspicious dates and times for your events based on Vedic astrology principles." />
+    <meta property="og:image" content="/assets/astro-event-planner-og-image.jpg" />
+    <meta property="og:url" content="https://astroeventplanner.com" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Astro Event Planner - Find Auspicious Dates & Times" />
+    <meta name="twitter:description" content="Find auspicious dates and times for your events based on Vedic astrology principles." />
+    <meta name="twitter:image" content="/assets/astro-event-planner-twitter-image.jpg" />
+
+    <!-- Added Structured Data and Canonical Tag -->
+    <link rel="canonical" href="https://astroeventplanner.com" />
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Astro Event Planner",
+      "url": "https://astroeventplanner.com",
+      "description": "Astro Event Planner helps you find auspicious dates and times based on Vedic astrology principles.",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://astroeventplanner.com/?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+    <script src="./assets/index-vt3sIs2t.js"></script>
+  </head>
+
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
