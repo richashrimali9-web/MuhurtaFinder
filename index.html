@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Astro Event Planner - Find Auspicious Dates & Times</title>
     
-    <!-- Corrected AdSense and Analytics scripts to handle environments without `import.meta` -->
-    <script>
-      const isProd = typeof import !== 'undefined' && typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.PROD;
-      const adsenseId = isProd ? (import.meta.env ? import.meta.env.VITE_ADSENSE_ID : null) : null;
-      const gaMeasurementId = isProd ? (import.meta.env ? import.meta.env.VITE_GA_MEASUREMENT_ID : null) : null;
+    <!-- Updated script to ensure module compatibility -->
+    <script type="module">
+      const isProd = typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.PROD;
+      const adsenseId = isProd ? import.meta.env.VITE_ADSENSE_ID : null;
+      const gaMeasurementId = isProd ? import.meta.env.VITE_GA_MEASUREMENT_ID : null;
 
       if (isProd && adsenseId) {
         const script = document.createElement('script');
