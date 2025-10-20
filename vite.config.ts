@@ -57,11 +57,16 @@
           format: 'iife',
           entryFileNames: 'assets/[name]-[hash].js',
           chunkFileNames: 'assets/[name]-[hash].js',
-          assetFileNames: 'assets/[name]-[hash].[ext]'
-        }
+          assetFileNames: 'assets/[name]-[hash].[ext]',
+          // Force single file output to avoid module loading issues
+          manualChunks: undefined
+        },
+        // Disable code splitting completely
+        external: []
       },
-      // Disable module format
-      modulePreload: false
+      // Additional settings to force non-module output
+      modulePreload: false,
+      cssCodeSplit: false
     },
     // Configure for GitHub Pages static serving
     base: './',
