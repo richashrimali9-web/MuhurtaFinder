@@ -1,0 +1,22 @@
+# Ensure proper MIME types for modules
+AddType application/javascript .js
+AddType application/javascript .mjs
+AddType text/javascript .js
+AddType text/javascript .mjs
+
+# Enable CORS for modules
+<Files "*.js">
+    Header set Access-Control-Allow-Origin "*"
+</Files>
+
+<Files "*.mjs">
+    Header set Access-Control-Allow-Origin "*"
+</Files>
+
+# Cache control for static assets
+<IfModule mod_expires.c>
+    ExpiresActive on
+    ExpiresByType application/javascript "access plus 1 month"
+    ExpiresByType text/javascript "access plus 1 month"
+    ExpiresByType text/css "access plus 1 month"
+</IfModule>

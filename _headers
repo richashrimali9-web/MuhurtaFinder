@@ -1,0 +1,12 @@
+# Netlify headers file
+/*.js
+  Content-Type: application/javascript
+
+/*.mjs
+  Content-Type: application/javascript
+
+/*.tsx
+  Content-Type: application/javascript
+
+/src/*
+  Content-Type: application/javascript

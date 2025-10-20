@@ -5,13 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Astro Event Planner - Find Auspicious Dates & Times</title>
     
-    <!-- Updated script to ensure module compatibility -->
-    <script type="module">
-      const isProd = typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.PROD;
-      const adsenseId = isProd ? import.meta.env.VITE_ADSENSE_ID : null;
-      const gaMeasurementId = isProd ? import.meta.env.VITE_GA_MEASUREMENT_ID : null;
+    <!-- Production-ready AdSense and Analytics scripts - COMMENTED OUT FOR TESTING -->
+    <!-- 
+    <script>
+      // Detect production environment by hostname
+      const isProd = window.location.hostname === 'astroeventplanner.com';
+      
+      // Replace these placeholders with actual IDs in production deployment
+      const adsenseId = 'YOUR_ADSENSE_ID';
+      const gaMeasurementId = 'YOUR_GA_MEASUREMENT_ID';
 
-      if (isProd && adsenseId) {
+      if (isProd && adsenseId && adsenseId !== 'YOUR_ADSENSE_ID') {
         const script = document.createElement('script');
         script.async = true;
         script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseId}`;
@@ -19,7 +23,7 @@
         document.head.appendChild(script);
       }
 
-      if (isProd && gaMeasurementId) {
+      if (isProd && gaMeasurementId && gaMeasurementId !== 'YOUR_GA_MEASUREMENT_ID') {
         const gtagScript = document.createElement('script');
         gtagScript.async = true;
         gtagScript.src = `https://www.googletagmanager.com/gtag/js?id=${gaMeasurementId}`;
@@ -32,6 +36,7 @@
         window.gtag = gtag;
       }
     </script>
+    -->
 
     <!-- Added SEO meta tags -->
     <meta name="description" content="Astro Event Planner helps you find auspicious dates and times based on Vedic astrology principles. Plan your events with confidence!" />
