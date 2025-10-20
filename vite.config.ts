@@ -50,16 +50,18 @@
       },
     },
     build: {
-      target: 'esnext',
+      target: 'es2015',
       outDir: 'build',
       rollupOptions: {
         output: {
-          // Ensure proper file extensions for GitHub Pages
+          format: 'iife',
           entryFileNames: 'assets/[name]-[hash].js',
           chunkFileNames: 'assets/[name]-[hash].js',
           assetFileNames: 'assets/[name]-[hash].[ext]'
         }
-      }
+      },
+      // Disable module format
+      modulePreload: false
     },
     // Configure for GitHub Pages static serving
     base: './',

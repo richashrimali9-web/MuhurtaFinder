@@ -2,9 +2,9 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main, master, Fixes ]
   pull_request:
-    branches: [ main, master ]
+    branches: [ main, master, Fixes ]
 
 # Allow manual triggers
   workflow_dispatch:

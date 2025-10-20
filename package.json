@@ -58,6 +58,7 @@
       },
       "scripts": {
             "dev": "vite",
-            "build": "vite build"
+            "build": "vite build && node fix-html.js",
+            "build:original": "vite build"
       }
 }
