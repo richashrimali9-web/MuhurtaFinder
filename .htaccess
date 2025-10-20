@@ -1,17 +1,28 @@
-# Ensure proper MIME types for modules
-AddType application/javascript .js
-AddType application/javascript .mjs
-AddType text/javascript .js
-AddType text/javascript .mjs
+# Ensure proper MIME types for JavaScript modules
+<IfModule mod_mime.c>
+    AddType application/javascript .js
+    AddType application/javascript .mjs
+    AddType text/javascript .js
+    AddType text/javascript .mjs
+</IfModule>
+
+# Force correct MIME type for all JS files
+<FilesMatch "\.(js|mjs)$">
+    ForceType application/javascript
+</FilesMatch>
 
 # Enable CORS for modules
-<Files "*.js">
-    Header set Access-Control-Allow-Origin "*"
-</Files>
+<IfModule mod_headers.c>
+    <Files "*.js">
+        Header set Access-Control-Allow-Origin "*"
+        Header set Content-Type "application/javascript"
+    </Files>
 
-<Files "*.mjs">
-    Header set Access-Control-Allow-Origin "*"
-</Files>
+    <Files "*.mjs">
+        Header set Access-Control-Allow-Origin "*"
+        Header set Content-Type "application/javascript"
+    </Files>
+</IfModule>
 
 # Cache control for static assets
 <IfModule mod_expires.c>

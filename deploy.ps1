@@ -15,6 +15,7 @@ Write-Host "📋 Copying server configuration files and CNAME..." -ForegroundCol
 Copy-Item .htaccess build\ -Force -ErrorAction SilentlyContinue
 Copy-Item _headers build\ -Force -ErrorAction SilentlyContinue
 Copy-Item CNAME build\ -Force -ErrorAction SilentlyContinue
+Copy-Item web.config build\ -Force -ErrorAction SilentlyContinue
 
 # Create .nojekyll file for GitHub Pages
 New-Item -Path "build\.nojekyll" -ItemType File -Force | Out-Null

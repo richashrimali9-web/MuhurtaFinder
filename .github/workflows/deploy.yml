@@ -43,6 +43,7 @@ jobs:
           cp .htaccess build/ || true
           cp _headers build/ || true
           cp CNAME build/ || true
+          cp web.config build/ || true
           touch build/.nojekyll
 
       - name: Setup Pages
