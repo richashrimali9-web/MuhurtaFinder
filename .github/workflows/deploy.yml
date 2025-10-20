@@ -38,10 +38,11 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Copy server configs
+      - name: Copy server configs and CNAME
         run: |
           cp .htaccess build/ || true
           cp _headers build/ || true
+          cp CNAME build/ || true
           touch build/.nojekyll
 
       - name: Setup Pages

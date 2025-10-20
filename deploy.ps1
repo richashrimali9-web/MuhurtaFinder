@@ -10,10 +10,11 @@ if ($LASTEXITCODE -ne 0) {
     exit 1
 }
 
-# Copy server configuration files
-Write-Host "📋 Copying server configuration files..." -ForegroundColor Yellow
+# Copy server configuration files and CNAME
+Write-Host "📋 Copying server configuration files and CNAME..." -ForegroundColor Yellow
 Copy-Item .htaccess build\ -Force -ErrorAction SilentlyContinue
 Copy-Item _headers build\ -Force -ErrorAction SilentlyContinue
+Copy-Item CNAME build\ -Force -ErrorAction SilentlyContinue
 
 # Create .nojekyll file for GitHub Pages
 New-Item -Path "build\.nojekyll" -ItemType File -Force | Out-Null
