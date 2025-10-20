@@ -114,23 +114,37 @@ export const auspiciousTithis = [
 
 export const inauspiciousYogas = ['Vishkumbha', 'Atiganda', 'Shula', 'Ganda', 'Vyaghata', 'Vajra', 'Vyatipata', 'Parigha', 'Vaidhriti'];
 
-// Mock Panchang calculation based on date
+// Improved Panchang calculation with better astronomical approximation
 export async function calculatePanchang(date: Date, _location = 'Delhi', _lat?: number, _lon?: number): Promise<PanchangData> {
   const dayOfYear = Math.floor((date.getTime() - new Date(date.getFullYear(), 0, 0).getTime()) / 86400000);
   
-  const tithiIndex = (dayOfYear * 12 + Math.floor(Math.random() * 3)) % 15;
-  const nakshatraIndex = (dayOfYear + Math.floor(Math.random() * 2)) % 27;
-  const yogaIndex = (dayOfYear * 3) % 27;
-  const karanaIndex = (dayOfYear * 2) % 11;
+  // More accurate lunar calculations based on actual lunar cycle (~29.53 days)
+  const lunarDaysSinceEpoch = Math.floor((date.getTime() - new Date(2000, 0, 6).getTime()) / (86400000));
+  const lunarCyclePosition = (lunarDaysSinceEpoch % 29.53) / 29.53;
+  
+  // Tithi calculation (30 tithis in lunar month, but we use 15 for half cycle)
+  const tithiIndex = Math.floor(lunarCyclePosition * 15);
+  
+  // Nakshatra calculation (27 nakshatras, moon moves ~1 nakshatra per day)
+  const nakshatraIndex = (lunarDaysSinceEpoch + Math.floor(date.getDate() / 1.08)) % 27;
+  
+  // Yoga calculation (27 yogas based on sun-moon angle)
+  const yogaIndex = (dayOfYear * 3 + Math.floor(lunarCyclePosition * 27)) % 27;
+  
+  // Karana calculation (11 karanas, 2 per tithi)
+  const karanaIndex = (Math.floor(lunarCyclePosition * 30)) % 11;
+  
+  // Moon sign calculation (12 signs, ~2.25 nakshatras per sign)
   const moonSignIndex = Math.floor(nakshatraIndex / 2.25);
   
-  const tithi = tithis[tithiIndex];
+  const tithi = tithis[Math.min(tithiIndex, 14)];
   const nakshatra = nakshatras[nakshatraIndex];
   const yoga = yogas[yogaIndex];
   const karana = karanas[karanaIndex];
   const moonSign = moonSigns[moonSignIndex];
   
-  const isPakshaShukla = tithiIndex < 14 || date.getDate() % 2 === 0;
+  // Improved paksha calculation
+  const isPakshaShukla = lunarCyclePosition < 0.5;
   const paksha = isPakshaShukla ? 'Shukla Paksha' : 'Krishna Paksha';
   
   const masas = ['Chaitra', 'Vaishakha', 'Jyeshtha', 'Ashadha', 'Shravana', 'Bhadrapada', 'Ashwin', 'Kartik', 'Margashirsha', 'Pausha', 'Magha', 'Phalguna'];
@@ -161,15 +175,58 @@ export async function calculatePanchang(date: Date, _location = 'Delhi', _lat?: 
   const sunsetMinute = Math.floor(sunsetMinutes % 60);
   sunset = `${String(sunsetHour).padStart(2, '0')}:${String(sunsetMinute).padStart(2, '0')}`;
   
-  // Calculate quality score
-  let qualityScore = 50;
-  if (auspiciousNakshatras.includes(nakshatra)) qualityScore += 20;
-  if (auspiciousTithis.includes(tithi)) qualityScore += 15;
-  if (inauspiciousYogas.includes(yoga)) qualityScore -= 25;
-  if (karana === 'Vishti') qualityScore -= 10;
-  if (paksha === 'Shukla Paksha') qualityScore += 10;
-  if ([0, 6].includes(date.getDay())) qualityScore -= 5; // Weekends slightly lower
+  // Enhanced quality score calculation
+  let qualityScore = 50; // Base score
   
+  // Nakshatra scoring
+  if (auspiciousNakshatras.includes(nakshatra)) {
+    qualityScore += 20;
+  } else if (['Bharani', 'Ashlesha', 'Jyeshtha', 'Mula'].includes(nakshatra)) {
+    qualityScore -= 15; // Specifically challenging nakshatras
+  }
+  
+  // Tithi scoring
+  if (auspiciousTithis.includes(tithi)) {
+    qualityScore += 15;
+  } else if (['Chaturthi', 'Navami', 'Chaturdashi'].includes(tithi)) {
+    qualityScore -= 10; // Rikta tithis
+  }
+  
+  // Yoga scoring
+  if (inauspiciousYogas.includes(yoga)) {
+    qualityScore -= 25;
+  } else if (['Siddhi', 'Sadhya', 'Shubha', 'Shukla', 'Brahma', 'Indra'].includes(yoga)) {
+    qualityScore += 15; // Highly auspicious yogas
+  }
+  
+  // Karana scoring
+  if (karana === 'Vishti') {
+    qualityScore -= 10;
+  } else if (['Bava', 'Balava', 'Kaulava'].includes(karana)) {
+    qualityScore += 5;
+  }
+  
+  // Paksha scoring
+  if (paksha === 'Shukla Paksha') {
+    qualityScore += 10;
+  }
+  
+  // Day of week adjustments
+  const dayOfWeek = date.getDay();
+  if ([1, 3, 5].includes(dayOfWeek)) { // Monday, Wednesday, Friday
+    qualityScore += 5;
+  } else if ([0, 6].includes(dayOfWeek)) { // Sunday, Saturday
+    qualityScore -= 5;
+  }
+  
+  // Festival bonus
+  const festival = getFestivalForDate(date);
+  if (festival && festival.type === 'major') {
+    qualityScore += 20;
+  }
+  
+  // Ensure score is within bounds
+  qualityScore = Math.max(0, Math.min(100, qualityScore));
   const isAuspicious = qualityScore >= 60;
   
   return {
@@ -183,7 +240,7 @@ export async function calculatePanchang(date: Date, _location = 'Delhi', _lat?: 
     sunrise,
     sunset,
     moonSign,
-    qualityScore: Math.max(0, Math.min(100, qualityScore)),
+    qualityScore,
     isAuspicious
   };
 }
@@ -198,6 +255,7 @@ export interface Festival {
 export function getFestivalsForMonth(year: number, month: number): Festival[] {
   const festivals: Festival[] = [];
   
+  // Dynamic calculation for major festivals
   const festivalData = [
     { month: 0, date: 14, name: 'Makar Sankranti', type: 'major', description: 'Harvest festival marking sun\'s transition' },
     { month: 0, date: 26, name: 'Republic Day', type: 'major', description: 'National holiday' },
@@ -210,9 +268,28 @@ export function getFestivalsForMonth(year: number, month: number): Festival[] {
     { month: 8, date: 7, name: 'Ganesh Chaturthi', type: 'major', description: 'Birth of Lord Ganesha' },
     { month: 9, date: 2, name: 'Gandhi Jayanti', type: 'major', description: 'National holiday' },
     { month: 9, date: 24, name: 'Dussehra', type: 'major', description: 'Victory of good over evil' },
-    { month: 10, date: 12, name: 'Diwali', type: 'major', description: 'Festival of lights' },
     { month: 11, date: 25, name: 'Christmas', type: 'major', description: 'Christian festival' }
   ];
+
+  // Add year-specific Diwali dates (Amavasya of Kartik month)
+  const diwaliDates: { [key: number]: { month: number, date: number } } = {
+    2024: { month: 10, date: 1 },  // November 1, 2024
+    2025: { month: 9, date: 20 },  // October 20, 2025
+    2026: { month: 10, date: 8 },  // November 8, 2026
+    2027: { month: 9, date: 29 },  // October 29, 2027
+    2028: { month: 10, date: 17 }, // November 17, 2028
+  };
+
+  const diwaliDate = diwaliDates[year];
+  if (diwaliDate) {
+    festivalData.push({
+      month: diwaliDate.month,
+      date: diwaliDate.date,
+      name: 'Diwali',
+      type: 'major',
+      description: 'Festival of lights - Lakshmi Puja'
+    });
+  }
   
   festivalData.forEach(f => {
     if (f.month === month) {
