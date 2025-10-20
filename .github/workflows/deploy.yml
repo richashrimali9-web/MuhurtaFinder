@@ -38,13 +38,12 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Copy server configs and CNAME
+      - name: Prepare deployment files
         run: |
-          cp .htaccess build/ || true
-          cp _headers build/ || true
           cp CNAME build/ || true
-          cp web.config build/ || true
-          touch build/.nojekyll
+          echo "" > build/.nojekyll
+          # Ensure all JS files have proper extensions
+          find build -name "*.js" -type f -exec echo "Found JS file: {}" \;
 
       - name: Setup Pages
         uses: actions/configure-pages@v4

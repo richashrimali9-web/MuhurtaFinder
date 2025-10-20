@@ -52,7 +52,17 @@
     build: {
       target: 'esnext',
       outDir: 'build',
+      rollupOptions: {
+        output: {
+          // Ensure proper file extensions for GitHub Pages
+          entryFileNames: 'assets/[name]-[hash].js',
+          chunkFileNames: 'assets/[name]-[hash].js',
+          assetFileNames: 'assets/[name]-[hash].[ext]'
+        }
+      }
     },
+    // Configure for GitHub Pages static serving
+    base: './',
     server: {
       port: 3000,
       open: true,
