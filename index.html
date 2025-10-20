@@ -1,0 +1,47 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Astro Event Planner - Find Auspicious Dates & Times</title>
+    
+    <!-- Google AdSense script here -->
+    <script>
+      // Google AdSense - Only loads in production with valid Publisher ID
+      if (import.meta.env.PROD && import.meta.env.VITE_ADSENSE_ID) {
+        const script = document.createElement('script');
+        script.async = true;
+        script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${import.meta.env.VITE_ADSENSE_ID}`;
+        script.crossOrigin = 'anonymous';
+        document.head.appendChild(script);
+      }
+    </script>
+    
+    <!-- Google Analytics script here -->
+    <script>
+      // Google Analytics - Only loads in production with valid Measurement ID
+      if (import.meta.env.PROD && import.meta.env.VITE_GA_MEASUREMENT_ID) {
+        // Load gtag script
+        const gtagScript = document.createElement('script');
+        gtagScript.async = true;
+        gtagScript.src = `https://www.googletagmanager.com/gtag/js?id=${import.meta.env.VITE_GA_MEASUREMENT_ID}`;
+        document.head.appendChild(gtagScript);
+        
+        // Initialize gtag
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', import.meta.env.VITE_GA_MEASUREMENT_ID);
+        
+        // Make gtag available globally
+        window.gtag = gtag;
+      }
+    </script>
+  </head>
+
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>  
