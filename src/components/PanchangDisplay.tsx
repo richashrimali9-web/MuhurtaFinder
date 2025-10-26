@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Calendar as CalendarIcon, Sun, Moon, Star, Info, MapPin } from 'lucide-react';
+import { Sun, Moon, Info, MapPin } from 'lucide-react';
 import { FaWhatsapp, FaFacebookF, FaInstagram, FaTwitter, FaShareAlt } from 'react-icons/fa';
 import { Card } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Label } from './ui/label';
-import { calculatePanchang, type PanchangData, getActionableInsights, getFestivalForDate } from '../utils/panchangData';
+import { calculatePanchang, type PanchangData, getActionableInsights, getFestivalForDate, getCurrentTithi, getCurrentNakshatra } from '../utils/panchangData';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 // lightweight: not using ICS export in this component right now
 import { generateCardImage } from '../utils/cardGenerator';
@@ -38,70 +38,52 @@ export function PanchangDisplay() {
   const shareCardToSocial = async (platform: 'whatsapp' | 'twitter' | 'facebook' | 'instagram') => {
     const cardId = 'panchang-share-card';
     const fileName = `Panchang-${selectedDate.toISOString().split('T')[0]}.png`;
-    
-    const blob = await generateCardImage({
-      cardElementId: cardId,
-      fileName,
-    });
-
+    // Wait longer for the hidden card to fully render with all content
+    await new Promise(resolve => setTimeout(resolve, 500));
+    // Find the hidden card node in the DOM
+    const blob = await generateCardImage({ cardElementId: cardId, fileName, backgroundColor: '#fff' });
     if (!blob) {
-      alert('Failed to generate card image');
+      alert('Could not generate card image.');
       return;
     }
-
-    // Convert blob to URL for social sharing
     const imageUrl = URL.createObjectURL(blob);
-    const text = `Check out today's Panchang for ${selectedCity.name}! - Astro Event Planner`;
-
-    // Try Web Share API (Level 2) to share the image file directly when available (mobile browsers)
-    try {
-      const file = new File([blob], fileName, { type: blob.type || 'image/png' });
-
-      // Use navigator.canShare if available to check file share support
-      const canShareFiles = (navigator as any).canShare ? (navigator as any).canShare({ files: [file] }) : false;
-
-      if ((navigator as any).share && canShareFiles) {
-        await (navigator as any).share({ files: [file], text });
+    // Try Web Share API for direct sharing
+    if (navigator.canShare && navigator.canShare({ files: [new File([blob], fileName, { type: blob.type })] })) {
+      try {
+        await navigator.share({
+          title: 'Astro Event Planner',
+          text: `Check out today's Panchang for ${selectedCity.name}!`,
+          files: [new File([blob], fileName, { type: blob.type })]
+        });
         URL.revokeObjectURL(imageUrl);
         return;
+      } catch (err) {
+        // fallback to download/share links below
       }
-    } catch (err) {
-      // swallow and fall back to existing behavior
-      console.info('Web Share API unavailable or failed, falling back to download+link share', err);
     }
-
-    // Fallbacks: download image for apps that don't accept direct file sharing from the browser
     switch (platform) {
-      case 'whatsapp':
-        // Download image and open WhatsApp web/text share
-        {
-          const link = document.createElement('a');
-          link.href = imageUrl;
-          link.download = fileName;
-          link.click();
-          URL.revokeObjectURL(imageUrl);
-          // Open chat composer with text (image must be attached manually in most cases)
-          window.open(`https://wa.me/?text=${encodeURIComponent(text + ' https://astroeventplanner.com')}`, '_blank');
-        }
+      case 'whatsapp': {
+        window.open(`https://wa.me/?text=Check%20out%20today's%20Panchang!%20See%20attached%20image.`);
         break;
-      case 'twitter':
-        // Twitter Web Intent cannot pre-upload images from the browser. Share the text + site link.
-        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=https://astroeventplanner.com`, '_blank');
+      }
+      case 'twitter': {
+        window.open(`https://twitter.com/intent/tweet?text=Check%20out%20today's%20Panchang!`);
         break;
-      case 'facebook':
-        // Facebook web share accepts URLs only; recommend uploading the downloaded image in-app
-        window.open(`https://www.facebook.com/sharer/sharer.php?u=https://astroeventplanner.com&quote=${encodeURIComponent(text)}`, '_blank');
+      }
+      case 'facebook': {
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`);
         break;
-      case 'instagram':
-        // Instagram web doesn't allow direct image uploads — download and prompt user
-        {
-          const downloadLink = document.createElement('a');
-          downloadLink.href = imageUrl;
-          downloadLink.download = fileName;
-          downloadLink.click();
-          URL.revokeObjectURL(imageUrl);
-          alert('Image downloaded! Please open Instagram and share from your gallery.');
-        }
+      }
+      case 'instagram': {
+        const downloadLink = document.createElement('a');
+        downloadLink.href = imageUrl;
+        downloadLink.download = fileName;
+        downloadLink.click();
+        URL.revokeObjectURL(imageUrl);
+        alert('Image downloaded! Please open Instagram and share from your gallery.');
+        break;
+      }
+      default:
         break;
     }
   };
@@ -150,31 +132,61 @@ export function PanchangDisplay() {
   
   const infoItems = [
     {
-      label: 'Tithi',
-      value: panchang?.tithi || '--',
-      description: 'Lunar day in the Hindu calendar',
-      icon: Moon
-    },
-    {
-      label: 'Nakshatra',
-      value: panchang?.nakshatra || '--',
-      description: 'Lunar mansion or constellation',
-      icon: Star
-    },
-    {
-      label: 'Yoga',
-      value: panchang?.yoga || '--',
-      description: 'Auspicious combination of sun and moon',
+      label: 'Sunrise',
+      value: panchang?.sunrise || '--',
+      description: 'Morning sunrise time',
       icon: Sun
     },
     {
-      label: 'Karana',
-      value: panchang?.karana || '--',
-      description: 'Half of a Tithi',
-      icon: CalendarIcon
+      label: 'Sunset', 
+      value: panchang?.sunset || '--',
+      description: 'Evening sunset time',
+      icon: Moon
+    },
+    {
+      label: 'Moonrise',
+      value: panchang?.moonrise || '--',
+      description: 'Moon rise time',
+      icon: Moon
+    },
+    {
+      label: 'Moonset',
+      value: panchang?.moonset || '--',
+      description: 'Moon set time',
+      icon: Moon
     }
   ];
+
+  // Prepare detailed Panchang elements for display
+  const detailedElements = panchang ? [
+    {
+      title: 'Tithis',
+      elements: panchang.tithis,
+      icon: '🌙',
+      description: 'Lunar days with transition times'
+    },
+    {
+      title: 'Nakshatras',
+      elements: panchang.nakshatras,
+      icon: '⭐',
+      description: 'Lunar mansions with transition times'
+    },
+    {
+      title: 'Yogas',
+      elements: panchang.yogas,
+      icon: '🔮',
+      description: 'Auspicious combinations'
+    },
+    {
+      title: 'Karanas',
+      elements: panchang.karanas,
+      icon: '💫',
+      description: 'Half Tithis'
+    }
+  ] : [];
   
+  
+
   return (
     <div className="relative">
       {/* Header as full-bleed bar; inner content aligned to main container width */}
@@ -194,7 +206,7 @@ export function PanchangDisplay() {
             date={selectedDate} 
             city={selectedCity.name} 
             panchang={panchang} 
-            cardId="panchang-share-card" 
+            cardId="panchang-share-card"
           />
         </div>
       )}
@@ -272,7 +284,7 @@ export function PanchangDisplay() {
         const getFestivalEmoji = (name: string) => {
           if (name.includes('Diwali')) return '🪔';
           if (name.includes('Holi')) return '🌈';
-          if (name.includes('Krishna') || name.includes('Janmashtami')) return '🪈';
+          if (name.includes('Krishna' )|| name.includes('Janmashtami')) return '🪈';
           if (name.includes('Ganesha')) return '🐘';
           if (name.includes('Christmas')) return '🎄';
           if (name.includes('Independence')) return '🇮🇳';
@@ -376,11 +388,11 @@ export function PanchangDisplay() {
             <p className="font-semibold text-sm">Why {panchang.qualityScore}%?</p>
             <ul className="text-sm space-y-1">
               <li className="flex justify-between">
-                <span>✓ {panchang.nakshatra} (Nakshatra):</span>
+                <span>✓ {getCurrentNakshatra(panchang)} (Nakshatra):</span>
                 <span className="text-green-600">+20</span>
               </li>
               <li className="flex justify-between">
-                <span>✓ {panchang.tithi} (Tithi):</span>
+                <span>✓ {getCurrentTithi(panchang)} (Tithi):</span>
                 <span className="text-green-600">+15</span>
               </li>
               <li className="flex justify-between">
@@ -479,6 +491,7 @@ export function PanchangDisplay() {
       })()}
       
       {/* Panchang Details */}
+      {/* Basic astronomical timings */}
       <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         {infoItems.map((item, idx) => (
           <TooltipProvider key={idx}>
@@ -506,6 +519,65 @@ export function PanchangDisplay() {
           </TooltipProvider>
         ))}
       </div>
+
+      {/* Detailed Panchang Elements - Compact Responsive Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {detailedElements.map((el) => (
+          <Card key={el.title} className="flex flex-col gap-1 p-3 bg-gradient-to-br from-yellow-50 to-purple-50 dark:from-yellow-950/10 dark:to-purple-950/10 border-0 shadow-sm">
+            <div className="flex items-center gap-2">
+              <span className="text-lg">{el.icon}</span>
+              <span className="font-bold text-base">{el.title}</span>
+            </div>
+            <span className="text-xs text-muted-foreground mb-1">{el.description}</span>
+            <span className="rounded bg-yellow-50/60 dark:bg-yellow-900/10 px-2 py-1 font-semibold text-sm">
+              {el.elements && el.elements.length > 0 ? el.elements[0].name : '--'}
+            </span>
+          </Card>
+        ))}
+      </div>
+
+      {/* Auspicious and Inauspicious Periods */}
+      {panchang && (
+        <div className="space-y-4">
+          {panchang.auspiciousPeriods && panchang.auspiciousPeriods.length > 0 && (
+            <Card className="p-4 sm:p-6 rounded-2xl shadow-sm glass-card">
+              <h3 className="text-lg font-semibold text-green-700 flex items-center space-x-2 mb-4">
+                <span>✨</span>
+                <span>Auspicious Periods</span>
+              </h3>
+              <div className="grid grid-cols-1 gap-2">
+                {panchang.auspiciousPeriods.map((period, index) => (
+                  <div key={index} className="p-3 rounded-lg bg-green-50 border border-green-200">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium text-green-800">{period.name}</span>
+                      <span className="text-sm text-green-700">{period.startTime} - {period.endTime}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
+
+          {panchang.inauspiciousPeriods && panchang.inauspiciousPeriods.length > 0 && (
+            <Card className="p-4 sm:p-6 rounded-2xl shadow-sm glass-card">
+              <h3 className="text-lg font-semibold text-red-700 flex items-center space-x-2 mb-4">
+                <span>⚠️</span>
+                <span>Inauspicious Periods</span>
+              </h3>
+              <div className="grid grid-cols-1 gap-2">
+                {panchang.inauspiciousPeriods.map((period, index) => (
+                  <div key={index} className="p-3 rounded-lg bg-red-50 border border-red-200">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium text-red-800">{period.name}</span>
+                      <span className="text-sm text-red-700">{period.startTime} - {period.endTime}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
+        </div>
+      )}
       
       {/* Additional Details */}
       <div className="grid gap-3 sm:gap-4 md:grid-cols-2">

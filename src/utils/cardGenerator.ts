@@ -20,7 +20,7 @@ export async function generateCardImage(options: CardGeneratorOptions): Promise<
     width,
     height,
     scale = 2,
-    backgroundColor = '#ffffff',
+    backgroundColor,
   } = options;
 
   console.log('🎨 Generating card image for:', cardElementId);
@@ -45,9 +45,11 @@ export async function generateCardImage(options: CardGeneratorOptions): Promise<
     container.style.left = '-9999px';
     container.style.top = '0';
     container.style.pointerEvents = 'none';
+  if (backgroundColor) container.style.background = backgroundColor;
     document.body.appendChild(container);
 
     const clone = cardElement.cloneNode(true) as HTMLElement;
+  if (backgroundColor) clone.style.background = backgroundColor;
     container.appendChild(clone);
 
     // Inline computed styles to resolve CSS variables and modern color functions (oklch) into concrete values
@@ -216,8 +218,8 @@ export async function generateCardImage(options: CardGeneratorOptions): Promise<
     // and copy computed styles from our original clone into the cloned document before html2canvas parses it.
     let canvas: HTMLCanvasElement | null = null;
     try {
-      canvas = await html2canvas(clone, {
-      backgroundColor,
+  canvas = await html2canvas(clone, {
+  backgroundColor: backgroundColor ?? null,
       scale,
       logging: false,
       useCORS: true,

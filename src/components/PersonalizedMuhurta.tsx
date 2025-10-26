@@ -5,7 +5,7 @@ import { Button } from './ui/button';
 import { Label } from './ui/label';
 import { Input } from './ui/input';
 import { Badge } from './ui/badge';
-import { calculatePanchang, moonSigns } from '../utils/panchangData';
+import { calculatePanchang, moonSigns, getCurrentTithi, getCurrentNakshatra } from '../utils/panchangData';
 
 interface UserProfile {
   name: string;
@@ -283,11 +283,11 @@ export function PersonalizedMuhurta() {
                     <div className="grid grid-cols-2 gap-2 text-sm">
                       <div>
                         <span className="text-muted-foreground">Tithi:</span>
-                        <p>{item.panchang.tithi}</p>
+                        <p>{getCurrentTithi(item.panchang) ? getCurrentTithi(item.panchang) : <span className="text-red-600">Data unavailable</span>}</p>
                       </div>
                       <div>
                         <span className="text-muted-foreground">Nakshatra:</span>
-                        <p>{item.panchang.nakshatra}</p>
+                        <p>{getCurrentNakshatra(item.panchang) ? getCurrentNakshatra(item.panchang) : <span className="text-red-600">Data unavailable</span>}</p>
                       </div>
                       <div>
                         <span className="text-muted-foreground">Moon Sign:</span>

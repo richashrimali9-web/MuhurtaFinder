@@ -13,10 +13,10 @@ export interface BaseShareCardProps {
   containerStyle?: CSSProperties;
 }
 
-export function BaseShareCard({ 
-  id, 
-  children, 
-  width = 700, 
+export function BaseShareCard({
+  id,
+  children,
+  width = 700,
   height = 1100,
   containerStyle = {}
 }: BaseShareCardProps) {
@@ -26,14 +26,14 @@ export function BaseShareCard({
       style={{
         width: `${width}px`,
         maxWidth: `${width}px`,
-        backgroundColor: 'var(--color-card, #ffffff)',
+        background: 'linear-gradient(135deg, #f3e8ff 0%, #fce7f3 40%, #e0e7ff 100%)',
         borderColor: 'var(--accent, #e879f9)',
         borderWidth: '2px',
         borderStyle: 'solid',
         borderRadius: '0.75rem',
-  padding: '1.5rem',
-        boxShadow: 'var(--card-shadow, 0 10px 15px -3px rgba(147, 51, 234, 0.1), 0 4px 6px -2px rgba(147, 51, 234, 0.05))',
-  height: `${height}px`,
+        padding: '1.5rem',
+        boxShadow: '0 10px 15px -3px rgba(147,51,234,0.1), 0 4px 6px -2px rgba(147,51,234,0.05)',
+        height: `${height}px`,
         display: 'flex',
         flexDirection: 'column',
         gap: '0.875rem',

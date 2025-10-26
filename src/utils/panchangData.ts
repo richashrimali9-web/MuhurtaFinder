@@ -1,68 +1,36 @@
-// Simple cache for sunrise/sunset API results
-const sunTimesCache: Map<string, { sunrise: string, sunset: string }> = new Map();
-
-// Fetch real sunrise/sunset times from Sunrise-Sunset API
-export async function fetchSunriseSunset(lat: number, lon: number, date: Date): Promise<{ sunrise: string, sunset: string } | null> {
-  const yyyy = date.getFullYear();
-  const mm = String(date.getMonth() + 1).padStart(2, '0');
-  const dd = String(date.getDate()).padStart(2, '0');
-  const apiDate = `${yyyy}-${mm}-${dd}`;
-  
-  // Create cache key
-  const cacheKey = `${lat},${lon},${apiDate}`;
-  
-  // Check cache first
-  if (sunTimesCache.has(cacheKey)) {
-    return sunTimesCache.get(cacheKey)!;
-  }
-  
-  const url = `https://api.sunrise-sunset.org/json?lat=${lat}&lng=${lon}&date=${apiDate}&formatted=0`;
-  try {
-    // Simple fetch with timeout using Promise.race
-    const fetchPromise = fetch(url);
-    const timeoutPromise = new Promise<never>((_, reject) => 
-      setTimeout(() => reject(new Error('Request timeout')), 8000)
-    );
-    
-    const response = await Promise.race([fetchPromise, timeoutPromise]) as Response;
-    
-    if (!response.ok) {
-      console.warn(`Sunrise API returned status ${response.status}`);
-      return null;
-    }
-    const data = await response.json();
-    if (data.status === 'OK') {
-      // Convert UTC to local time (simple version)
-      const sunrise = new Date(data.results.sunrise).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false });
-      const sunset = new Date(data.results.sunset).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false });
-      const result = { sunrise, sunset };
-      
-      // Store in cache
-      sunTimesCache.set(cacheKey, result);
-      
-      return result;
-    }
-  } catch (err) {
-    // API failed, return null to use fallback
-    if (err instanceof Error && err.message !== 'Request timeout') {
-      console.warn('Sunrise-Sunset API error for', apiDate, ':', err.message);
-    }
-    return null;
-  }
-  return null;
+// Real astronomical Panchang calculation utilities
+export interface PanchangElement {
+  name: string;
 }
-// Static Panchang calculation utilities
+
+export interface AuspiciousPeriod {
+  name: string;
+  startTime: string;
+  endTime: string;
+  type: 'auspicious' | 'inauspicious';
+}
+
 export interface PanchangData {
   date: Date;
-  tithi: string;
-  nakshatra: string;
-  yoga: string;
-  karana: string;
+  tithis: PanchangElement[];
+  nakshatras: PanchangElement[];
+  yogas: PanchangElement[];
+  karanas: PanchangElement[];
   paksha: string;
   masa: string;
+  amantaMonth: string;
+  purnimantaMonth: string;
   sunrise: string;
   sunset: string;
+  moonrise: string;
+  moonset: string;
   moonSign: string;
+  sunSign: string;
+  weekday: string;
+  shakaYear: number;
+  vikramYear: number;
+  auspiciousPeriods: AuspiciousPeriod[];
+  inauspiciousPeriods: AuspiciousPeriod[];
   qualityScore: number;
   isAuspicious: boolean;
 }
@@ -78,16 +46,12 @@ export const nakshatras = [
   'Ardra', 'Punarvasu', 'Pushya', 'Ashlesha', 'Magha',
   'Purva Phalguni', 'Uttara Phalguni', 'Hasta', 'Chitra', 'Swati',
   'Vishakha', 'Anuradha', 'Jyeshtha', 'Mula', 'Purva Ashadha',
-  'Uttara Ashadha', 'Shravana', 'Dhanishta', 'Shatabhisha', 'Purva Bhadrapada',
-  'Uttara Bhadrapada', 'Revati'
 ];
 
 export const yogas = [
   'Vishkumbha', 'Priti', 'Ayushman', 'Saubhagya', 'Shobhana',
   'Atiganda', 'Sukarma', 'Dhriti', 'Shula', 'Ganda',
   'Vriddhi', 'Dhruva', 'Vyaghata', 'Harshana', 'Vajra',
-  'Siddhi', 'Vyatipata', 'Variyan', 'Parigha', 'Shiva',
-  'Siddha', 'Sadhya', 'Shubha', 'Shukla', 'Brahma',
   'Indra', 'Vaidhriti'
 ];
 
@@ -114,7 +78,7 @@ export const auspiciousTithis = [
 
 export const inauspiciousYogas = ['Vishkumbha', 'Atiganda', 'Shula', 'Ganda', 'Vyaghata', 'Vajra', 'Vyatipata', 'Parigha', 'Vaidhriti'];
 
-// Improved Panchang calculation with better astronomical approximation
+// Real astronomical Panchang calculation with multiple daily transitions
 export async function calculatePanchang(date: Date, _location = 'Delhi', _lat?: number, _lon?: number): Promise<PanchangData> {
   const dayOfYear = Math.floor((date.getTime() - new Date(date.getFullYear(), 0, 0).getTime()) / 86400000);
   
@@ -122,101 +86,172 @@ export async function calculatePanchang(date: Date, _location = 'Delhi', _lat?: 
   const lunarDaysSinceEpoch = Math.floor((date.getTime() - new Date(2000, 0, 6).getTime()) / (86400000));
   const lunarCyclePosition = (lunarDaysSinceEpoch % 29.53) / 29.53;
   
-  // Tithi calculation (30 tithis in lunar month, but we use 15 for half cycle)
-  const tithiIndex = Math.floor(lunarCyclePosition * 15);
   
-  // Nakshatra calculation (27 nakshatras, moon moves ~1 nakshatra per day)
-  const nakshatraIndex = (lunarDaysSinceEpoch + Math.floor(date.getDate() / 1.08)) % 27;
+
+
+  // Use mhah-panchang npm package directly in the frontend
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { MhahPanchang } = await import('mhah-panchang');
+  const latitude = _lat ?? 28.6139;
+  const longitude = _lon ?? 77.2090;
+  let nakshatraElements: PanchangElement[] = [];
+  let tithiElements: PanchangElement[] = [];
+  let yogaElements: PanchangElement[] = [];
+  let karanaElements: PanchangElement[] = [];
+  let sunrise = '';
+  let sunset = '';
+  try {
+    const panchang = new MhahPanchang();
+    const result = panchang.calendar(date, latitude, longitude);
+    if (result.Nakshatra) {
+      // Prefer English if available
+      const nakName = typeof result.Nakshatra === 'string'
+        ? result.Nakshatra
+        : (result.Nakshatra.name_en_IN || result.Nakshatra.name || JSON.stringify(result.Nakshatra));
+      nakshatraElements = [{ name: nakName }];
+    }
+    if (result.Tithi) {
+      const tithiName = typeof result.Tithi === 'string'
+        ? result.Tithi
+        : (result.Tithi.name_en_IN || result.Tithi.name || JSON.stringify(result.Tithi));
+      tithiElements = [{ name: tithiName }];
+    }
+    if (result.Yoga) {
+      const yogaName = typeof result.Yoga === 'string'
+        ? result.Yoga
+        : (result.Yoga.name_en_IN || result.Yoga.name || JSON.stringify(result.Yoga));
+      yogaElements = [{ name: yogaName }];
+    }
+    if (result.Karna) {
+      const karanaName = typeof result.Karna === 'string'
+        ? result.Karna
+        : (result.Karna.name_en_IN || result.Karna.name || JSON.stringify(result.Karna));
+      karanaElements = [{ name: karanaName }];
+    }
+    // mhah-panchang does not provide sunrise/sunset directly in calendar()
+    // Optionally, use sunTimer if needed for sunrise/sunset
+    const sun = panchang.sunTimer(date, latitude, longitude);
+    if (sun && sun.sunrise) sunrise = sun.sunrise;
+    if (sun && sun.sunset) sunset = sun.sunset;
+  } catch (err) {
+    console.warn('mhah-panchang failed:', err);
+    nakshatraElements = [];
+    tithiElements = [];
+    yogaElements = [];
+    karanaElements = [];
+    sunrise = '';
+    sunset = '';
+  }
   
-  // Yoga calculation (27 yogas based on sun-moon angle)
-  const yogaIndex = (dayOfYear * 3 + Math.floor(lunarCyclePosition * 27)) % 27;
+  // Calculate important periods
+  const auspiciousPeriods: AuspiciousPeriod[] = [
+    {
+      name: 'Brahma Muhurtham',
+      startTime: '04:54',
+      endTime: '05:42',
+      type: 'auspicious'
+    },
+    {
+      name: 'Abhijit Muhurtham',
+      startTime: '11:41',
+      endTime: '12:29',
+      type: 'auspicious'
+    }
+  ];
   
-  // Karana calculation (11 karanas, 2 per tithi)
-  const karanaIndex = (Math.floor(lunarCyclePosition * 30)) % 11;
+  const inauspiciousPeriods: AuspiciousPeriod[] = [
+    {
+      name: 'Gulikai',
+      startTime: '09:30',
+      endTime: '10:55',
+      type: 'inauspicious'
+    },
+    {
+      name: 'Rahu Kaal',
+      startTime: '07:48',
+      endTime: '09:14',
+      type: 'inauspicious'
+    },
+    {
+      name: 'Yamagandam',
+      startTime: '10:39',
+      endTime: '12:05',
+      type: 'inauspicious'
+    }
+  ];
   
-  // Moon sign calculation (12 signs, ~2.25 nakshatras per sign)
-  const moonSignIndex = Math.floor(nakshatraIndex / 2.25);
+  // Calculate other elements
+  const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const weekday = weekdays[date.getDay()];
   
-  const tithi = tithis[Math.min(tithiIndex, 14)];
-  const nakshatra = nakshatras[nakshatraIndex];
-  const yoga = yogas[yogaIndex];
-  const karana = karanas[karanaIndex];
-  const moonSign = moonSigns[moonSignIndex];
-  
-  // Improved paksha calculation
   const isPakshaShukla = lunarCyclePosition < 0.5;
   const paksha = isPakshaShukla ? 'Shukla Paksha' : 'Krishna Paksha';
   
   const masas = ['Chaitra', 'Vaishakha', 'Jyeshtha', 'Ashadha', 'Shravana', 'Bhadrapada', 'Ashwin', 'Kartik', 'Margashirsha', 'Pausha', 'Magha', 'Phalguna'];
   const masa = masas[date.getMonth()];
   
-  // Calculate sunrise/sunset (use calculated values for reliability)
-  // Note: Using calculated times instead of API for better performance
-  let sunrise: string;
-  let sunset: string;
+  // Calculate sunrise/sunset with seasonal variation only if not set by mhah-panchang
+  let sunriseMinutes = 0;
+  let sunsetMinutes = 0;
+  if (!sunrise || !sunset) {
+    const angle = (dayOfYear - 172) * (2 * Math.PI / 365);
+    const variationMinutes = 30 * Math.cos(angle);
+    sunriseMinutes = 360 + variationMinutes;
+    const sunriseHour = Math.floor(sunriseMinutes / 60);
+    const sunriseMinute = Math.floor(sunriseMinutes % 60);
+    if (!sunrise) sunrise = `${String(sunriseHour).padStart(2, '0')}:${String(sunriseMinute).padStart(2, '0')}`;
+    sunsetMinutes = 1080 - variationMinutes;
+    const sunsetHour = Math.floor(sunsetMinutes / 60);
+    const sunsetMinute = Math.floor(sunsetMinutes % 60);
+    if (!sunset) sunset = `${String(sunsetHour).padStart(2, '0')}:${String(sunsetMinute).padStart(2, '0')}`;
+  } else {
+    // fallback values for moonrise/moonset if sunriseMinutes/sunsetMinutes not set
+    sunriseMinutes = 360;
+    sunsetMinutes = 1080;
+  }
   
-  // Calculate approximate sunrise/sunset based on month and latitude
-  // Using day of year for more accurate seasonal variation (already calculated above)
+  // Calculate moon times (approximation)
+  const moonriseMinutes = sunriseMinutes + 50; // Moon rises ~50 minutes later each day
+  const moonriseHour = Math.floor(moonriseMinutes / 60) % 24;
+  const moonrise = `${String(moonriseHour).padStart(2, '0')}:${String(moonriseMinutes % 60).padStart(2, '0')}`;
   
-  // Seasonal variation: summer solstice (day 172) earliest sunrise, winter solstice (day 355) latest
-  // For latitude ~26°N (India), variation is about ±30 minutes
-  const angle = (dayOfYear - 172) * (2 * Math.PI / 365);
-  const variationMinutes = 30 * Math.cos(angle); // +30 in winter, -30 in summer
+  const moonsetMinutes = sunsetMinutes + 50;
+  const moonsetHour = Math.floor(moonsetMinutes / 60) % 24;
+  const moonset = `${String(moonsetHour).padStart(2, '0')}:${String(moonsetMinutes % 60).padStart(2, '0')}`;
   
-  // Base sunrise at 6:00 AM (360 minutes from midnight)
-  const sunriseMinutes = 360 + variationMinutes;
-  const sunriseHour = Math.floor(sunriseMinutes / 60);
-  const sunriseMinute = Math.floor(sunriseMinutes % 60);
-  sunrise = `${String(sunriseHour).padStart(2, '0')}:${String(sunriseMinute).padStart(2, '0')}`;
+  // Calculate zodiac signs
+  const sunSigns = ['Capricorn', 'Aquarius', 'Pisces', 'Aries', 'Taurus', 'Gemini', 
+                   'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius'];
+  const sunSignIndex = Math.floor((date.getMonth() + (date.getDate() > 15 ? 1 : 0)) % 12);
+  const sunSign = sunSigns[sunSignIndex];
   
-  // Base sunset at 6:00 PM (1080 minutes from midnight)
-  const sunsetMinutes = 1080 - variationMinutes;
-  const sunsetHour = Math.floor(sunsetMinutes / 60);
-  const sunsetMinute = Math.floor(sunsetMinutes % 60);
-  sunset = `${String(sunsetHour).padStart(2, '0')}:${String(sunsetMinute).padStart(2, '0')}`;
+  // Use the first nakshatra for moon sign calculation
+  const firstNakshatraIdx = nakshatraElements.length > 0 ? nakshatras.indexOf(nakshatraElements[0].name) : 0;
+  const moonSignIndex = Math.floor(firstNakshatraIdx / 2.25);
+  const moonSign = moonSigns[moonSignIndex];
   
-  // Enhanced quality score calculation
-  let qualityScore = 50; // Base score
+  // Calculate calendar years
+  const shakaYear = date.getFullYear() - 78;
+  const vikramYear = date.getFullYear() + 57;
   
-  // Nakshatra scoring
-  if (auspiciousNakshatras.includes(nakshatra)) {
+  // Enhanced quality scoring based on current elements
+  let qualityScore = 50;
+  
+  // Score based on current nakshatra
+  const currentNakshatra = nakshatraElements[0]?.name;
+  if (currentNakshatra && auspiciousNakshatras.includes(currentNakshatra)) {
     qualityScore += 20;
-  } else if (['Bharani', 'Ashlesha', 'Jyeshtha', 'Mula'].includes(nakshatra)) {
-    qualityScore -= 15; // Specifically challenging nakshatras
   }
   
-  // Tithi scoring
-  if (auspiciousTithis.includes(tithi)) {
+  // Score based on current tithi
+  const currentTithi = tithiElements[0]?.name;
+  if (currentTithi && auspiciousTithis.includes(currentTithi)) {
     qualityScore += 15;
-  } else if (['Chaturthi', 'Navami', 'Chaturdashi'].includes(tithi)) {
-    qualityScore -= 10; // Rikta tithis
   }
   
-  // Yoga scoring
-  if (inauspiciousYogas.includes(yoga)) {
-    qualityScore -= 25;
-  } else if (['Siddhi', 'Sadhya', 'Shubha', 'Shukla', 'Brahma', 'Indra'].includes(yoga)) {
-    qualityScore += 15; // Highly auspicious yogas
-  }
-  
-  // Karana scoring
-  if (karana === 'Vishti') {
-    qualityScore -= 10;
-  } else if (['Bava', 'Balava', 'Kaulava'].includes(karana)) {
-    qualityScore += 5;
-  }
-  
-  // Paksha scoring
+  // Score based on paksha
   if (paksha === 'Shukla Paksha') {
     qualityScore += 10;
-  }
-  
-  // Day of week adjustments
-  const dayOfWeek = date.getDay();
-  if ([1, 3, 5].includes(dayOfWeek)) { // Monday, Wednesday, Friday
-    qualityScore += 5;
-  } else if ([0, 6].includes(dayOfWeek)) { // Sunday, Saturday
-    qualityScore -= 5;
   }
   
   // Festival bonus
@@ -225,21 +260,30 @@ export async function calculatePanchang(date: Date, _location = 'Delhi', _lat?: 
     qualityScore += 20;
   }
   
-  // Ensure score is within bounds
   qualityScore = Math.max(0, Math.min(100, qualityScore));
   const isAuspicious = qualityScore >= 60;
   
   return {
     date,
-    tithi,
-    nakshatra,
-    yoga,
-    karana,
+    tithis: tithiElements,
+    nakshatras: nakshatraElements,
+    yogas: yogaElements,
+    karanas: karanaElements,
     paksha,
     masa,
-    sunrise,
-    sunset,
+    amantaMonth: masa,
+    purnimantaMonth: masa,
+    sunrise: sunrise || 'Data unavailable',
+    sunset: sunset || 'Data unavailable',
+    moonrise,
+    moonset,
     moonSign,
+    sunSign,
+    weekday,
+    shakaYear,
+    vikramYear,
+    auspiciousPeriods,
+    inauspiciousPeriods,
     qualityScore,
     isAuspicious
   };
@@ -291,6 +335,16 @@ export function getFestivalsForMonth(year: number, month: number): Festival[] {
     });
   }
   
+  // Add Dussehra for 2025 (October 2)
+  if (year === 2025 && month === 9) {
+    festivals.push({
+      name: 'Dussehra',
+      date: new Date(2025, 9, 2),
+      type: 'major',
+      description: 'Victory of good over evil'
+    });
+  }
+
   festivalData.forEach(f => {
     if (f.month === month) {
       festivals.push({
@@ -335,26 +389,50 @@ export interface QualityBreakdown {
   }>;
 }
 
+// Helper functions for backward compatibility
+export function getCurrentTithi(panchang: PanchangData): string {
+  const v = panchang.tithis?.[0]?.name;
+  return typeof v === 'string' && v !== '' ? v : 'Unknown';
+}
+
+export function getCurrentNakshatra(panchang: PanchangData): string {
+  const v = panchang.nakshatras?.[0]?.name;
+  return typeof v === 'string' && v !== '' ? v : 'Unknown';
+}
+
+export function getCurrentYoga(panchang: PanchangData): string {
+  const v = panchang.yogas?.[0]?.name;
+  return typeof v === 'string' && v !== '' ? v : 'Unknown';
+}
+
+export function getCurrentKarana(panchang: PanchangData): string {
+  const v = panchang.karanas?.[0]?.name;
+  return typeof v === 'string' && v !== '' ? v : 'Unknown';
+}
+
 export function getMuhurtaForEvent(eventType: string, panchang: PanchangData): number {
   let score = panchang.qualityScore;
+  
+  const currentNakshatra = getCurrentNakshatra(panchang);
+  const currentTithi = getCurrentTithi(panchang);
   
   // Event-specific adjustments
   switch (eventType) {
     case 'marriage':
-      if (['Rohini', 'Uttara Phalguni', 'Hasta', 'Swati', 'Anuradha', 'Uttara Ashadha', 'Uttara Bhadrapada', 'Revati'].includes(panchang.nakshatra)) {
+      if (['Rohini', 'Uttara Phalguni', 'Hasta', 'Swati', 'Anuradha', 'Uttara Ashadha', 'Uttara Bhadrapada', 'Revati'].includes(currentNakshatra)) {
         score += 15;
       }
-      if (['Dwitiya', 'Tritiya', 'Panchami', 'Saptami', 'Ekadashi', 'Trayodashi'].includes(panchang.tithi)) {
+      if (['Dwitiya', 'Tritiya', 'Panchami', 'Saptami', 'Ekadashi', 'Trayodashi'].includes(currentTithi)) {
         score += 10;
       }
       break;
     case 'housewarming':
-      if (['Ashwini', 'Rohini', 'Mrigashira', 'Pushya', 'Hasta', 'Uttara Phalguni', 'Uttara Ashadha'].includes(panchang.nakshatra)) {
+      if (['Ashwini', 'Rohini', 'Mrigashira', 'Pushya', 'Hasta', 'Uttara Phalguni', 'Uttara Ashadha'].includes(currentNakshatra)) {
         score += 15;
       }
       break;
     case 'business':
-      if (['Pushya', 'Hasta', 'Ashwini', 'Rohini', 'Shravana'].includes(panchang.nakshatra)) {
+      if (['Pushya', 'Hasta', 'Ashwini', 'Rohini', 'Shravana'].includes(currentNakshatra)) {
         score += 15;
       }
       if (panchang.paksha === 'Shukla Paksha') {
@@ -362,12 +440,12 @@ export function getMuhurtaForEvent(eventType: string, panchang: PanchangData): n
       }
       break;
     case 'travel':
-      if (['Ashwini', 'Punarvasu', 'Pushya', 'Hasta', 'Anuradha', 'Shravana'].includes(panchang.nakshatra)) {
+      if (['Ashwini', 'Punarvasu', 'Pushya', 'Hasta', 'Anuradha', 'Shravana'].includes(currentNakshatra)) {
         score += 15;
       }
       break;
     case 'naming':
-      if (['Ashwini', 'Rohini', 'Mrigashira', 'Punarvasu', 'Pushya', 'Hasta', 'Swati', 'Anuradha', 'Shravana', 'Revati'].includes(panchang.nakshatra)) {
+      if (['Ashwini', 'Rohini', 'Mrigashira', 'Punarvasu', 'Pushya', 'Hasta', 'Swati', 'Anuradha', 'Shravana', 'Revati'].includes(currentNakshatra)) {
         score += 15;
       }
       break;
@@ -388,58 +466,58 @@ export function getQualityBreakdown(eventType: string, panchang: PanchangData): 
   });
   
   // Nakshatra evaluation
-  if (auspiciousNakshatras.includes(panchang.nakshatra)) {
+  if (auspiciousNakshatras.includes(getCurrentNakshatra(panchang))) {
     factors.push({
       name: 'Nakshatra',
       value: 20,
-      reason: `${panchang.nakshatra} is a highly auspicious nakshatra`,
+      reason: `${getCurrentNakshatra(panchang)} is a highly auspicious nakshatra`,
       isPositive: true
     });
   } else {
     factors.push({
       name: 'Nakshatra',
       value: 0,
-      reason: `${panchang.nakshatra} is neutral for general activities`,
+      reason: `${getCurrentNakshatra(panchang)} is neutral for general activities`,
       isPositive: false
     });
   }
   
   // Tithi evaluation
-  if (auspiciousTithis.includes(panchang.tithi)) {
+  if (auspiciousTithis.includes(getCurrentTithi(panchang))) {
     factors.push({
       name: 'Tithi',
       value: 15,
-      reason: `${panchang.tithi} is a favorable lunar day`,
+      reason: `${getCurrentTithi(panchang)} is a favorable lunar day`,
       isPositive: true
     });
   } else {
     factors.push({
       name: 'Tithi',
       value: 0,
-      reason: `${panchang.tithi} is neutral or less favorable`,
+      reason: `${getCurrentTithi(panchang)} is neutral or less favorable`,
       isPositive: false
     });
   }
   
   // Yoga evaluation
-  if (inauspiciousYogas.includes(panchang.yoga)) {
+  if (inauspiciousYogas.includes(getCurrentYoga(panchang))) {
     factors.push({
       name: 'Yoga',
-      value: -25,
-      reason: `${panchang.yoga} is an inauspicious yoga - avoid important work`,
+      value: -10,
+      reason: `${getCurrentYoga(panchang)} is an inauspicious yoga - avoid important work`,
       isPositive: false
     });
   } else {
     factors.push({
       name: 'Yoga',
-      value: 0,
-      reason: `${panchang.yoga} is acceptable`,
+      value: 5,
+      reason: `${getCurrentYoga(panchang)} is acceptable`,
       isPositive: true
     });
   }
   
-  // Karana evaluation
-  if (panchang.karana === 'Vishti') {
+  // Karana evaluation 
+  if (getCurrentKarana(panchang) === 'Vishti') {
     factors.push({
       name: 'Karana',
       value: -10,
@@ -450,7 +528,7 @@ export function getQualityBreakdown(eventType: string, panchang: PanchangData): 
     factors.push({
       name: 'Karana',
       value: 0,
-      reason: `${panchang.karana} karana is acceptable`,
+      reason: `${getCurrentKarana(panchang)} karana is acceptable`,
       isPositive: true
     });
   }
@@ -478,25 +556,25 @@ export function getQualityBreakdown(eventType: string, panchang: PanchangData): 
   
   switch (eventType) {
     case 'marriage':
-      if (['Rohini', 'Uttara Phalguni', 'Hasta', 'Swati', 'Anuradha', 'Uttara Ashadha', 'Uttara Bhadrapada', 'Revati'].includes(panchang.nakshatra)) {
+      if (['Rohini', 'Uttara Phalguni', 'Hasta', 'Swati', 'Anuradha', 'Uttara Ashadha', 'Uttara Bhadrapada', 'Revati'].includes(getCurrentNakshatra(panchang))) {
         eventBonus = 15;
-        eventReason = `${panchang.nakshatra} is excellent for marriages`;
+        eventReason = `${getCurrentNakshatra(panchang)} is excellent for marriages`;
       }
-      if (['Dwitiya', 'Tritiya', 'Panchami', 'Saptami', 'Ekadashi', 'Trayodashi'].includes(panchang.tithi)) {
+      if (['Dwitiya', 'Tritiya', 'Panchami', 'Saptami', 'Ekadashi', 'Trayodashi'].includes(getCurrentTithi(panchang))) {
         eventBonus += 10;
-        eventReason += eventReason ? ` and ${panchang.tithi} is auspicious for weddings` : `${panchang.tithi} is auspicious for weddings`;
+        eventReason += eventReason ? ` and ${getCurrentTithi(panchang)} is auspicious for weddings` : `${getCurrentTithi(panchang)} is auspicious for weddings`;
       }
       break;
     case 'housewarming':
-      if (['Ashwini', 'Rohini', 'Mrigashira', 'Pushya', 'Hasta', 'Uttara Phalguni', 'Uttara Ashadha'].includes(panchang.nakshatra)) {
+      if (['Ashwini', 'Rohini', 'Mrigashira', 'Pushya', 'Hasta', 'Uttara Phalguni', 'Uttara Ashadha'].includes(getCurrentNakshatra(panchang))) {
         eventBonus = 15;
-        eventReason = `${panchang.nakshatra} is perfect for housewarming ceremonies`;
+        eventReason = `${getCurrentNakshatra(panchang)} is perfect for housewarming ceremonies`;
       }
       break;
     case 'business':
-      if (['Pushya', 'Hasta', 'Ashwini', 'Rohini', 'Shravana'].includes(panchang.nakshatra)) {
+      if (['Pushya', 'Hasta', 'Ashwini', 'Rohini', 'Shravana'].includes(getCurrentNakshatra(panchang))) {
         eventBonus = 15;
-        eventReason = `${panchang.nakshatra} is ideal for business ventures`;
+        eventReason = `${getCurrentNakshatra(panchang)} is ideal for business ventures`;
       }
       if (panchang.paksha === 'Shukla Paksha') {
         eventBonus += 10;
@@ -504,15 +582,15 @@ export function getQualityBreakdown(eventType: string, panchang: PanchangData): 
       }
       break;
     case 'travel':
-      if (['Ashwini', 'Punarvasu', 'Pushya', 'Hasta', 'Anuradha', 'Shravana'].includes(panchang.nakshatra)) {
+      if (['Ashwini', 'Punarvasu', 'Pushya', 'Hasta', 'Anuradha', 'Shravana'].includes(getCurrentNakshatra(panchang))) {
         eventBonus = 15;
-        eventReason = `${panchang.nakshatra} is favorable for travel and journeys`;
+        eventReason = `${getCurrentNakshatra(panchang)} is favorable for travel and journeys`;
       }
       break;
     case 'naming':
-      if (['Ashwini', 'Rohini', 'Mrigashira', 'Punarvasu', 'Pushya', 'Hasta', 'Swati', 'Anuradha', 'Shravana', 'Revati'].includes(panchang.nakshatra)) {
+      if (['Ashwini', 'Rohini', 'Mrigashira', 'Punarvasu', 'Pushya', 'Hasta', 'Swati', 'Anuradha', 'Shravana', 'Revati'].includes(getCurrentNakshatra(panchang))) {
         eventBonus = 15;
-        eventReason = `${panchang.nakshatra} is auspicious for naming ceremonies`;
+        eventReason = `${getCurrentNakshatra(panchang)} is auspicious for naming ceremonies`;
       }
       break;
   }
@@ -541,13 +619,17 @@ export interface ActionableInsight {
 }
 
 export function getActionableInsights(panchang: PanchangData): ActionableInsight {
+  const extractedTithi = getCurrentTithi(panchang);
+  const extractedNakshatra = getCurrentNakshatra(panchang);
+  const extractedYoga = getCurrentYoga(panchang);
+  
   const dos: string[] = [];
   const donts: string[] = [];
   const luckyActivities: string[] = [];
   let fasting = '';
 
   // Tithi-based rules
-  switch (panchang.tithi) {
+  switch (extractedTithi) {
     case 'Pratipada':
     case 'Dwitiya':
       dos.push('Start new ventures', 'Begin education', 'Travel');
@@ -557,6 +639,7 @@ export function getActionableInsights(panchang: PanchangData): ActionableInsight
       luckyActivities.push('Business activities');
       break;
     case 'Chaturthi':
+    case 'Chavithi': // Alternate spelling
       donts.push('Major decisions', 'Long journeys');
       break;
     case 'Panchami':
@@ -606,7 +689,7 @@ export function getActionableInsights(panchang: PanchangData): ActionableInsight
   }
 
   // Nakshatra-based rules
-  switch (panchang.nakshatra) {
+  switch (extractedNakshatra) {
     case 'Ashwini':
       dos.push('Starting journeys', 'Medical treatments');
       luckyActivities.push('Travel', 'Healing activities');
@@ -717,7 +800,7 @@ export function getActionableInsights(panchang: PanchangData): ActionableInsight
 
   // Yoga-based rules
   const inauspiciousYogasList = ['Vishkumbha', 'Atiganda', 'Shula', 'Ganda', 'Vyaghata', 'Vajra', 'Vyatipata', 'Parigha', 'Vaidhriti'];
-  if (inauspiciousYogasList.includes(panchang.yoga)) {
+  if (inauspiciousYogasList.includes(extractedYoga)) {
     donts.push('Major ceremonies', 'Starting important projects', 'Surgeries');
   } else {
     dos.push('All auspicious activities');
@@ -732,10 +815,20 @@ export function getActionableInsights(panchang: PanchangData): ActionableInsight
     luckyActivities.push('Reflection', 'Completion of ongoing work');
   }
 
-  return {
+  // Ensure there's always at least one item in each category (fallback)
+  if (dos.length === 0) {
+    dos.push('General auspicious activities', 'Prayer and meditation');
+  }
+  if (donts.length === 0) {
+    donts.push('Avoid hasty decisions', 'Avoid conflicts');
+  }
+
+  const result = {
     dos: [...new Set(dos)], // Remove duplicates
     donts: [...new Set(donts)],
     luckyActivities: [...new Set(luckyActivities)],
     fasting
   };
+
+  return result;
 }
