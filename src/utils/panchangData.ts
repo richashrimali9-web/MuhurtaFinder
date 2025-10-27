@@ -1,6 +1,8 @@
 // Real astronomical Panchang calculation utilities
 export interface PanchangElement {
   name: string;
+  startTime?: string; // Time when this element begins (IST)
+  endTime?: string;   // Time when this element ends (IST)
 }
 
 export interface AuspiciousPeriod {
@@ -78,6 +80,72 @@ export const auspiciousTithis = [
 
 export const inauspiciousYogas = ['Vishkumbha', 'Atiganda', 'Shula', 'Ganda', 'Vyaghata', 'Vajra', 'Vyatipata', 'Parigha', 'Vaidhriti'];
 
+/**
+ * Binary search to find exact transition time for a Panchang element (Tithi, Nakshatra, Yoga, Karana)
+ * Returns the time when the element changes from one value to another
+ */
+function findTransitionTime(
+  panchang: any,
+  date: Date,
+  latitude: number,
+  longitude: number,
+  elementType: 'Tithi' | 'Nakshatra' | 'Yoga' | 'Karna'
+): Date | null {
+  const startOfDay = new Date(date);
+  startOfDay.setHours(0, 0, 0, 0);
+  
+  const endOfDay = new Date(date);
+  endOfDay.setHours(23, 59, 59, 999);
+  
+  const startResult = panchang.calendar(startOfDay, latitude, longitude);
+  const endResult = panchang.calendar(endOfDay, latitude, longitude);
+  
+  const getElementName = (result: any) => {
+    const element = result[elementType];
+    return typeof element === 'string' ? element : (element?.name_en_IN || element?.name);
+  };
+  
+  const startElement = getElementName(startResult);
+  const endElement = getElementName(endResult);
+  
+  // No transition if same element throughout the day
+  if (startElement === endElement) {
+    return null;
+  }
+  
+  // Binary search for transition time (within 1 minute accuracy)
+  let left = startOfDay.getTime();
+  let right = endOfDay.getTime();
+  let transitionTime: Date | null = null;
+  
+  while (right - left > 60000) { // 1 minute = 60,000 ms
+    const mid = Math.floor((left + right) / 2);
+    const midDate = new Date(mid);
+    const midResult = panchang.calendar(midDate, latitude, longitude);
+    const midElement = getElementName(midResult);
+    
+    if (midElement === startElement) {
+      left = mid;
+    } else {
+      right = mid;
+      transitionTime = midDate;
+    }
+  }
+  
+  return transitionTime;
+}
+
+/**
+ * Format time in IST (HH:MM AM/PM)
+ */
+function formatTimeIST(date: Date): string {
+  const hours = date.getHours();
+  const minutes = date.getMinutes();
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  const displayHours = hours % 12 || 12;
+  return `${displayHours}:${String(minutes).padStart(2, '0')} ${ampm}`;
+}
+
 // Real astronomical Panchang calculation with multiple daily transitions
 export async function calculatePanchang(date: Date, _location = 'Delhi', _lat?: number, _lon?: number): Promise<PanchangData> {
   const dayOfYear = Math.floor((date.getTime() - new Date(date.getFullYear(), 0, 0).getTime()) / 86400000);
@@ -129,21 +197,26 @@ export async function calculatePanchang(date: Date, _location = 'Delhi', _lat?: 
     
     // CRITICAL: Sample Panchang at multiple times to capture ALL elements that occur during the day
     // Tithi, Nakshatra, Yoga, and Karana can change multiple times per day
-    // mPanchang shows all elements that occur during the day, with transition times
-    // Transitions can happen at ANY time (e.g., 07:12 AM), so we need frequent sampling
-    // Sample every 30 minutes from sunrise to sunset to catch all transitions
+    // Transitions can happen at ANY time including early morning (e.g., 12:39 AM)
+    // Therefore, we must sample from MIDNIGHT to MIDNIGHT (full 24-hour day)
     const sampleTimes: Date[] = [];
-    const totalDaylight = sunsetDate.getTime() - sunriseDate.getTime();
+    const startOfDay = new Date(date);
+    startOfDay.setHours(0, 0, 0, 0);
+    
+    const endOfDay = new Date(date);
+    endOfDay.setHours(23, 59, 59, 999);
+    
+    const totalDayMs = endOfDay.getTime() - startOfDay.getTime();
     const halfHourInMs = 30 * 60 * 1000; // 30 minutes
     
-    // Sample at sunrise, then every 30 minutes until sunset
-    for (let offset = 0; offset <= totalDaylight; offset += halfHourInMs) {
-      sampleTimes.push(new Date(sunriseDate.getTime() + offset));
+    // Sample every 30 minutes from midnight to midnight
+    for (let offset = 0; offset <= totalDayMs; offset += halfHourInMs) {
+      sampleTimes.push(new Date(startOfDay.getTime() + offset));
     }
     
-    // Always include sunset as last sample
-    if (sampleTimes[sampleTimes.length - 1].getTime() !== sunsetDate.getTime()) {
-      sampleTimes.push(sunsetDate);
+    // Always include end of day as last sample
+    if (sampleTimes[sampleTimes.length - 1].getTime() !== endOfDay.getTime()) {
+      sampleTimes.push(endOfDay);
     }
     
     const uniqueTithis = new Set<string>();
@@ -186,6 +259,53 @@ export async function calculatePanchang(date: Date, _location = 'Delhi', _lat?: 
     nakshatraElements = Array.from(uniqueNakshatras).map(name => ({ name }));
     yogaElements = Array.from(uniqueYogas).map(name => ({ name }));
     karanaElements = Array.from(uniqueKaranas).map(name => ({ name }));
+    
+    // If multiple elements detected, find exact transition times
+    if (tithiElements.length > 1) {
+      const transitionTime = findTransitionTime(panchang, date, latitude, longitude, 'Tithi');
+      if (transitionTime) {
+        const startOfDay = new Date(date);
+        startOfDay.setHours(0, 0, 0, 0);
+        
+        // First Tithi: from midnight to transition time
+        tithiElements[0].startTime = '12:00 AM';
+        tithiElements[0].endTime = formatTimeIST(transitionTime);
+        
+        // Second Tithi: from transition time to end of day
+        tithiElements[1].startTime = formatTimeIST(transitionTime);
+        tithiElements[1].endTime = '11:59 PM';
+      }
+    }
+    
+    if (nakshatraElements.length > 1) {
+      const transitionTime = findTransitionTime(panchang, date, latitude, longitude, 'Nakshatra');
+      if (transitionTime) {
+        nakshatraElements[0].startTime = '12:00 AM';
+        nakshatraElements[0].endTime = formatTimeIST(transitionTime);
+        nakshatraElements[1].startTime = formatTimeIST(transitionTime);
+        nakshatraElements[1].endTime = '11:59 PM';
+      }
+    }
+    
+    if (yogaElements.length > 1) {
+      const transitionTime = findTransitionTime(panchang, date, latitude, longitude, 'Yoga');
+      if (transitionTime) {
+        yogaElements[0].startTime = '12:00 AM';
+        yogaElements[0].endTime = formatTimeIST(transitionTime);
+        yogaElements[1].startTime = formatTimeIST(transitionTime);
+        yogaElements[1].endTime = '11:59 PM';
+      }
+    }
+    
+    if (karanaElements.length > 1) {
+      const transitionTime = findTransitionTime(panchang, date, latitude, longitude, 'Karna');
+      if (transitionTime) {
+        karanaElements[0].startTime = '12:00 AM';
+        karanaElements[0].endTime = formatTimeIST(transitionTime);
+        karanaElements[1].startTime = formatTimeIST(transitionTime);
+        karanaElements[1].endTime = '11:59 PM';
+      }
+    }
     
     // mhah-panchang v1.2.0 does not have moonTimer method
     // moonrise/moonset will remain empty and show "Data unavailable"
@@ -484,33 +604,55 @@ export interface QualityBreakdown {
 
 // Helper functions for backward compatibility
 export function getCurrentTithi(panchang: PanchangData): string {
-  // Return all Tithis joined by comma, or just the first one
+  // Return all Tithis with transition times if available
   if (panchang.tithis && panchang.tithis.length > 0) {
-    return panchang.tithis.map(t => t.name).join(', ');
+    const result = panchang.tithis.map(t => {
+      if (t.startTime && t.endTime) {
+        return `${t.name} (${t.startTime} - ${t.endTime})`;
+      }
+      return t.name;
+    }).join(', ');
+    
+    return result;
   }
   return 'Unknown';
 }
 
 export function getCurrentNakshatra(panchang: PanchangData): string {
-  // Return all Nakshatras joined by comma, or just the first one
+  // Return all Nakshatras with transition times if available
   if (panchang.nakshatras && panchang.nakshatras.length > 0) {
-    return panchang.nakshatras.map(n => n.name).join(', ');
+    return panchang.nakshatras.map(n => {
+      if (n.startTime && n.endTime) {
+        return `${n.name} (${n.startTime} - ${n.endTime})`;
+      }
+      return n.name;
+    }).join(', ');
   }
   return 'Unknown';
 }
 
 export function getCurrentYoga(panchang: PanchangData): string {
-  // Return all Yogas joined by comma, or just the first one
+  // Return all Yogas with transition times if available
   if (panchang.yogas && panchang.yogas.length > 0) {
-    return panchang.yogas.map(y => y.name).join(', ');
+    return panchang.yogas.map(y => {
+      if (y.startTime && y.endTime) {
+        return `${y.name} (${y.startTime} - ${y.endTime})`;
+      }
+      return y.name;
+    }).join(', ');
   }
   return 'Unknown';
 }
 
 export function getCurrentKarana(panchang: PanchangData): string {
-  // Return all Karanas joined by comma, or just the first one
+  // Return all Karanas with transition times if available
   if (panchang.karanas && panchang.karanas.length > 0) {
-    return panchang.karanas.map(k => k.name).join(', ');
+    return panchang.karanas.map(k => {
+      if (k.startTime && k.endTime) {
+        return `${k.name} (${k.startTime} - ${k.endTime})`;
+      }
+      return k.name;
+    }).join(', ');
   }
   return 'Unknown';
 }
