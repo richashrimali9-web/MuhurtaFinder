@@ -8,7 +8,7 @@ import { Label } from './ui/label';
 import { Checkbox } from './ui/checkbox';
 import { Badge } from './ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from './ui/dialog';
-import { calculatePanchang, getMuhurtaForEvent, getQualityBreakdown, eventTypes, getFestivalsForMonth } from '../utils/panchangData';
+import { calculatePanchang, getMuhurtaForEvent, getQualityBreakdown, eventTypes, getFestivalsForMonth, getCurrentTithi, getCurrentNakshatra } from '../utils/panchangData';
 import TimeslotList from './TimeslotListClean';
 import { generateTimeSlots } from '../utils/timeslots';
 import { generateCardImage } from '../utils/cardGenerator';
@@ -54,15 +54,12 @@ export function MuhurtaFinder() {
   useEffect(() => {
     let isMounted = true;
     async function fetchDates() {
-      console.log('Starting to fetch dates for', months[selectedMonth], selectedYear);
       setLoading(true);
       setError(null);
       try {
         const daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        
-        console.log(`Fetching ${daysInMonth} days for ${months[selectedMonth]} ${selectedYear}`);
         
         // Create array of all dates in the month
         const datesToFetch: Date[] = [];
@@ -73,15 +70,12 @@ export function MuhurtaFinder() {
           datesToFetch.push(date);
         }
         
-        console.log(`After filtering, ${datesToFetch.length} dates to fetch`);
-        
         // Batch process to avoid rate limiting (process 10 at a time)
         const batchSize = 10;
         const allResults: Array<any> = [];
         
         for (let i = 0; i < datesToFetch.length; i += batchSize) {
           const batch = datesToFetch.slice(i, i + batchSize);
-          console.log(`Fetching batch ${Math.floor(i/batchSize) + 1}/${Math.ceil(datesToFetch.length/batchSize)} (${batch.length} dates)`);
           
           const batchPromises = batch.map(date =>
             calculatePanchang(date, selectedCity.name, selectedCity.lat, selectedCity.lon)
@@ -101,8 +95,6 @@ export function MuhurtaFinder() {
           }
         }
         
-        console.log(`Fetched ${allResults.filter(r => r !== null).length} results successfully`);
-        
         // Filter and process results
         const dates = allResults
           .filter(result => result !== null)
@@ -114,8 +106,8 @@ export function MuhurtaFinder() {
           })
           .filter(item => {
             // Apply filters
-            if (preferredNakshatras.length > 0 && !preferredNakshatras.includes(item.panchang.nakshatra)) return false;
-            if (excludedTithis.includes(item.panchang.tithi)) return false;
+            if (preferredNakshatras.length > 0 && !preferredNakshatras.includes(getCurrentNakshatra(item.panchang))) return false;
+            if (excludedTithis.includes(getCurrentTithi(item.panchang))) return false;
             if (item.score < minScore) return false;
             return true;
           })
@@ -128,18 +120,9 @@ export function MuhurtaFinder() {
             }
           });
         
-        console.log(`After filtering by score (>=${minScore}), ${dates.length} dates remain`);
-        
         if (isMounted) {
-          console.log('Setting muhurtaDates state with', dates.length, 'dates');
           setMuhurtaDates(dates);
           setLoading(false);
-          console.log('Dates loaded successfully!');
-          
-          // Debug: Check state after a short delay
-          setTimeout(() => {
-            console.log('State check - muhurtaDates should now have', dates.length, 'items');
-          }, 100);
         }
       } catch (err) {
         console.error('Error fetching muhurta dates:', err);
@@ -188,7 +171,7 @@ export function MuhurtaFinder() {
       lines.push(`Suggested time: ${topStart} – ${topEnd} (Time quality: ${topSlot.score}%)`);
     }
     if (item.panchang) {
-      lines.push(`Tithi: ${item.panchang.tithi} · Nakshatra: ${item.panchang.nakshatra}`);
+      lines.push(`Tithi: ${getCurrentTithi(item.panchang)} · Nakshatra: ${getCurrentNakshatra(item.panchang)}`);
     }
 
     const text = lines.join('\n');
@@ -208,17 +191,17 @@ export function MuhurtaFinder() {
 
         const root = ReactDOM.createRoot(container);
         root.render(
-          <SmallShareCard
-            id={cardId}
-            date={date || new Date()}
-            city={selectedCity.name}
-            dayQuality={dayQuality}
-            topSlot={topSlot}
-            tithi={item.panchang?.tithi}
-            nakshatra={item.panchang?.nakshatra}
-            sunrise={item.panchang?.sunrise}
-            sunset={item.panchang?.sunset}
-          />
+            <SmallShareCard
+              id={cardId}
+              date={date || new Date()}
+              city={selectedCity.name}
+              dayQuality={dayQuality}
+              topSlot={topSlot}
+              tithi={getCurrentTithi(item.panchang)}
+              nakshatra={getCurrentNakshatra(item.panchang)}
+              sunrise={item.panchang?.sunrise}
+              sunset={item.panchang?.sunset}
+            />
         );
         await new Promise((resolve) => setTimeout(resolve, 120));
 
@@ -562,19 +545,33 @@ export function MuhurtaFinder() {
                     <div className="flex flex-wrap items-center gap-4 text-sm">
                       <div className="flex items-center gap-2">
                         <span className="text-muted-foreground">Tithi:</span>
-                        <span className="font-medium">{item.panchang.tithi}</span>
+                        <span className="font-medium">
+                          {getCurrentTithi(item.panchang) && getCurrentTithi(item.panchang) !== 'Unknown' && getCurrentTithi(item.panchang) !== ''
+                            ? getCurrentTithi(item.panchang)
+                            : <span className="text-red-600">Data unavailable</span>}
+                        </span>
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="text-muted-foreground">Nakshatra:</span>
-                        <span className="font-medium">{item.panchang.nakshatra}</span>
+                        <span className="font-medium">
+                          {getCurrentNakshatra(item.panchang) && getCurrentNakshatra(item.panchang) !== 'Unknown' && getCurrentNakshatra(item.panchang) !== ''
+                            ? getCurrentNakshatra(item.panchang)
+                            : <span className="text-red-600">Data unavailable</span>}
+                        </span>
                       </div>
+                    {/* Show warning if Panchang data is missing */}
+                    {(getCurrentTithi(item.panchang) === 'Unknown' || getCurrentNakshatra(item.panchang) === 'Unknown') && (
+                      <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 text-yellow-800 rounded text-xs">
+                        Panchang data for this date is unavailable from the astronomical data source. This is a known limitation for some historical/future dates.
+                      </div>
+                    )}
                       <div className="flex items-center gap-2">
                         <span className="text-muted-foreground">Sunrise:</span>
-                        <span className="font-medium">{item.panchang.sunrise}</span>
+                        <span className="font-medium">{typeof item.panchang.sunrise === 'string' ? item.panchang.sunrise : <span className="text-red-600">Data unavailable</span>}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="text-muted-foreground">Sunset:</span>
-                        <span className="font-medium">{item.panchang.sunset}</span>
+                        <span className="font-medium">{typeof item.panchang.sunset === 'string' ? item.panchang.sunset : <span className="text-red-600">Data unavailable</span>}</span>
                       </div>
                     </div>
                     

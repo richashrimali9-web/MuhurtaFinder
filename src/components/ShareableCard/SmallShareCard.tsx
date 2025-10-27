@@ -33,14 +33,15 @@ export function SmallShareCard({ id, date, city, dayQuality, topSlot, tithi, nak
       </div>
 
   <div style={{ marginTop: 12, display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: 'auto auto', gap: 10, alignItems: 'start', fontSize: 13, color: 'var(--muted-foreground, #6b7280)' }}>
+
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           <div style={{ fontWeight: 600, marginBottom: 6 }}>Tithi</div>
-          <div style={{ color: 'var(--muted-foreground, #6b7280)' }}>{tithi || '-'}</div>
+          <div style={{ color: 'var(--muted-foreground, #6b7280)' }}>{tithi ? tithi : <span style={{ color: 'red' }}>Data unavailable</span>}</div>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           <div style={{ fontWeight: 600, marginBottom: 6 }}>Nakshatra</div>
-          <div style={{ color: 'var(--muted-foreground, #6b7280)' }}>{nakshatra || '-'}</div>
+          <div style={{ color: 'var(--muted-foreground, #6b7280)' }}>{nakshatra ? nakshatra : <span style={{ color: 'red' }}>Data unavailable</span>}</div>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column' }}>

@@ -4,14 +4,19 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Astro Event Planner - Find Auspicious Dates & Times</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23663399' d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z'/%3E%3C/svg%3E" />
     
-    <!-- Corrected AdSense and Analytics scripts to handle environments without `import.meta` -->
+    <!-- Production-ready AdSense and Analytics scripts - COMMENTED OUT FOR TESTING -->
+    <!-- 
     <script>
-      const isProd = typeof import !== 'undefined' && typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.PROD;
-      const adsenseId = isProd ? (import.meta.env ? import.meta.env.VITE_ADSENSE_ID : null) : null;
-      const gaMeasurementId = isProd ? (import.meta.env ? import.meta.env.VITE_GA_MEASUREMENT_ID : null) : null;
+      // Detect production environment by hostname
+      const isProd = window.location.hostname === 'astroeventplanner.com';
+      
+      // Replace these placeholders with actual IDs in production deployment
+      const adsenseId = 'YOUR_ADSENSE_ID';
+      const gaMeasurementId = 'YOUR_GA_MEASUREMENT_ID';
 
-      if (isProd && adsenseId) {
+      if (isProd && adsenseId && adsenseId !== 'YOUR_ADSENSE_ID') {
         const script = document.createElement('script');
         script.async = true;
         script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseId}`;
@@ -19,7 +24,7 @@
         document.head.appendChild(script);
       }
 
-      if (isProd && gaMeasurementId) {
+      if (isProd && gaMeasurementId && gaMeasurementId !== 'YOUR_GA_MEASUREMENT_ID') {
         const gtagScript = document.createElement('script');
         gtagScript.async = true;
         gtagScript.src = `https://www.googletagmanager.com/gtag/js?id=${gaMeasurementId}`;
@@ -32,6 +37,7 @@
         window.gtag = gtag;
       }
     </script>
+    -->
 
     <!-- Added SEO meta tags -->
     <meta name="description" content="Astro Event Planner helps you find auspicious dates and times based on Vedic astrology principles. Plan your events with confidence!" />

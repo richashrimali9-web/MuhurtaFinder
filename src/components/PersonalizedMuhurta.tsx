@@ -5,7 +5,7 @@ import { Button } from './ui/button';
 import { Label } from './ui/label';
 import { Input } from './ui/input';
 import { Badge } from './ui/badge';
-import { calculatePanchang, moonSigns } from '../utils/panchangData';
+import { calculatePanchang, moonSigns, getCurrentTithi, getCurrentNakshatra } from '../utils/panchangData';
 
 interface UserProfile {
   name: string;
@@ -82,22 +82,22 @@ export function PersonalizedMuhurta() {
     loadPersonalizedDates();
   }, [profile]);
   
-  const handleSaveProfile = () => {
+  const handleSaveProfile = async () => {
     if (!name || !birthDate || !birthTime) {
       alert('Please fill all fields');
       return;
     }
     
-    // Calculate moon sign based on birth date (simplified)
+    // Calculate moon sign based on actual Panchang data from birth date
     const date = new Date(birthDate);
-    const moonSignIndex = (date.getDate() + date.getMonth()) % 12;
+    const birthPanchang = await calculatePanchang(date, birthPlace);
     
     const newProfile: UserProfile = {
       name,
       birthDate: date,
       birthTime,
       birthPlace,
-      moonSign: moonSigns[moonSignIndex]
+      moonSign: birthPanchang.moonSign // Use actual calculated moon sign from Panchang
     };
     
     setProfile(newProfile);
@@ -283,11 +283,11 @@ export function PersonalizedMuhurta() {
                     <div className="grid grid-cols-2 gap-2 text-sm">
                       <div>
                         <span className="text-muted-foreground">Tithi:</span>
-                        <p>{item.panchang.tithi}</p>
+                        <p>{getCurrentTithi(item.panchang) ? getCurrentTithi(item.panchang) : <span className="text-red-600">Data unavailable</span>}</p>
                       </div>
                       <div>
                         <span className="text-muted-foreground">Nakshatra:</span>
-                        <p>{item.panchang.nakshatra}</p>
+                        <p>{getCurrentNakshatra(item.panchang) ? getCurrentNakshatra(item.panchang) : <span className="text-red-600">Data unavailable</span>}</p>
                       </div>
                       <div>
                         <span className="text-muted-foreground">Moon Sign:</span>

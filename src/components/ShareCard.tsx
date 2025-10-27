@@ -2,6 +2,7 @@ import { Button } from './ui/button';
 import { PanchangData } from '../utils/panchangData';
 import { PanchangCard } from './PanchangCard';
 import { shareCardImage } from '../utils/cardGenerator';
+ 
 
 interface ShareCardProps {
   date: Date;
@@ -12,6 +13,8 @@ interface ShareCardProps {
 export function ShareCard({ date, city, panchang }: ShareCardProps) {
   const cardId = 'panchang-share-card';
   const fileName = `Panchang-${date.toISOString().split('T')[0]}.png`;
+  // Pass the original Panchang object directly to ensure all fields are present
+  const exportPanchang = panchang;
 
   const handleShareCard = async () => {
     const element = document.getElementById(cardId);
@@ -40,7 +43,7 @@ export function ShareCard({ date, city, panchang }: ShareCardProps) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       {/* Hidden Card for Image Generation - Not visible to users */}
       <div style={{ position: 'fixed', left: '-9999px', top: '0' }}>
-        <PanchangCard date={date} city={city} panchang={panchang} cardId={cardId} />
+        <PanchangCard date={date} city={city} panchang={exportPanchang} cardId={cardId} />
       </div>
 
       {/* Share Button Only */}

@@ -50,9 +50,26 @@
       },
     },
     build: {
-      target: 'esnext',
+      target: 'es2015',
       outDir: 'build',
+      rollupOptions: {
+        output: {
+          format: 'iife',
+          entryFileNames: 'assets/[name]-[hash].js',
+          chunkFileNames: 'assets/[name]-[hash].js',
+          assetFileNames: 'assets/[name]-[hash].[ext]',
+          // Force single file output to avoid module loading issues
+          manualChunks: undefined
+        },
+        // Disable code splitting completely
+        external: []
+      },
+      // Additional settings to force non-module output
+      modulePreload: false,
+      cssCodeSplit: false
     },
+    // Configure for GitHub Pages static serving
+    base: './',
     server: {
       port: 3000,
       open: true,

@@ -1,0 +1,18 @@
+# Headers file for GitHub Pages and other static hosts
+/*.js
+  Content-Type: application/javascript
+  X-Content-Type-Options: nosniff
+
+/*.mjs  
+  Content-Type: application/javascript
+  X-Content-Type-Options: nosniff
+
+/assets/*.js
+  Content-Type: application/javascript
+  X-Content-Type-Options: nosniff
+  Cache-Control: public, max-age=31536000
+
+# Ensure all JavaScript files get correct MIME type
+/assets/index-*.js
+  Content-Type: application/javascript
+  X-Content-Type-Options: nosniff

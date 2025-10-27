@@ -1,5 +1,7 @@
 import { PanchangData } from './panchangData';
+import { getCurrentTithi, getCurrentNakshatra, getCurrentYoga, getCurrentKarana } from './panchangData';
 import jsPDF from 'jspdf';
+import { generateCardImage } from './cardGenerator';
 
 export interface ShareOptions {
   title: string;
@@ -30,10 +32,10 @@ export function generatePanchangSummary(options: ShareOptions): string {
 🌄 Sunset: ${panchang.sunset}
 
 *📚 Panchang Elements:*
-🌙 Tithi: ${panchang.tithi}
-⭐ Nakshatra: ${panchang.nakshatra}
-✨ Yoga: ${panchang.yoga}
-🔄 Karana: ${panchang.karana}
+🌙 Tithi: ${getCurrentTithi(panchang)}
+⭐ Nakshatra: ${getCurrentNakshatra(panchang)}
+✨ Yoga: ${getCurrentYoga(panchang)}
+🔄 Karana: ${getCurrentKarana(panchang)}
 
 *📊 Lunar Information:*
 🌗 Moon Sign: ${panchang.moonSign}
@@ -105,10 +107,10 @@ export async function shareViaWebShare(options: {
 export function generatePanchangPDF(options: ShareOptions): void {
   const { date, city, panchang } = options;
   
-  const pdf = new jsPDF();
+  const pdf = new jsPDF({ unit: 'pt', format: 'a4' });
   const pageWidth = pdf.internal.pageSize.getWidth();
   const pageHeight = pdf.internal.pageSize.getHeight();
-  const margin = 15;
+  const margin = 40;
   
   let yPosition = margin;
   const lineHeight = 8;
@@ -117,8 +119,41 @@ export function generatePanchangPDF(options: ShareOptions): void {
   // Title
   pdf.setFontSize(20);
   pdf.setTextColor(88, 28, 135); // Purple
-  pdf.text('🕉️ Daily Panchang 🕉️', pageWidth / 2, yPosition, { align: 'center' });
-  yPosition += sectionSpacing;
+  // Try to embed the share card image first
+  (async () => {
+    try {
+      const blob = await generateCardImage({ cardElementId: 'panchang-share-card', fileName: 'panchang.png', scale: 2 });
+      if (blob) {
+        const imgData = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = (e) => reject(e);
+          reader.readAsDataURL(blob);
+        });
+        // Add the image centered on the page (fit within margins)
+        const img = new Image();
+        img.src = imgData;
+        img.onload = () => {
+          const ratio = Math.min((pageWidth - margin * 2) / img.width, (pageHeight - margin * 2) / img.height);
+          const w = img.width * ratio;
+          const h = img.height * ratio;
+          const x = (pageWidth - w) / 2;
+          const y = margin;
+          pdf.addImage(imgData, 'PNG', x, y, w, h);
+          pdf.save(`Panchang-${date.toISOString().split('T')[0]}-${city}.pdf`);
+        };
+        return;
+      }
+    } catch (err) {
+      console.warn('Card image generation failed, falling back to text PDF', err);
+    }
+
+    // Fallback: text-based PDF generation
+    // Title
+    pdf.setFontSize(20);
+    pdf.setTextColor(88, 28, 135); // Purple
+    pdf.text('🕉️ Daily Panchang 🕉️', pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += sectionSpacing;
 
   // Date and Location
   pdf.setFontSize(11);
@@ -156,10 +191,10 @@ export function generatePanchangPDF(options: ShareOptions): void {
   pdf.setFontSize(10);
   pdf.setTextColor(0, 0, 0);
   const elements = [
-    `Tithi (Lunar Day): ${panchang.tithi}`,
-    `Nakshatra (Constellation): ${panchang.nakshatra}`,
-    `Yoga (Auspicious Combination): ${panchang.yoga}`,
-    `Karana (Half Tithi): ${panchang.karana}`,
+    `Tithi (Lunar Day): ${getCurrentTithi(panchang)}`,
+    `Nakshatra (Constellation): ${getCurrentNakshatra(panchang)}`,
+    `Yoga (Auspicious Combination): ${getCurrentYoga(panchang)}`,
+    `Karana (Half Tithi): ${getCurrentKarana(panchang)}`,
   ];
 
   for (const element of elements) {
@@ -212,6 +247,7 @@ export function generatePanchangPDF(options: ShareOptions): void {
   // Save PDF
   const fileName = `Panchang-${dateStr.replace(/\s+/g, '-')}-${city}.pdf`;
   pdf.save(fileName);
+  })();
 }
 
 /**
@@ -229,10 +265,10 @@ export function generatePanchangICS(options: ShareOptions): void {
   // Event title and description
   const title = `Daily Panchang - ${city}`;
   const description = `
-Tithi: ${panchang.tithi}
-Nakshatra: ${panchang.nakshatra}
-Yoga: ${panchang.yoga}
-Karana: ${panchang.karana}
+Tithi: ${getCurrentTithi(panchang)}
+Nakshatra: ${getCurrentNakshatra(panchang)}
+Yoga: ${getCurrentYoga(panchang)}
+Karana: ${getCurrentKarana(panchang)}
 Sunrise: ${panchang.sunrise}
 Sunset: ${panchang.sunset}
 Moon Sign: ${panchang.moonSign}
