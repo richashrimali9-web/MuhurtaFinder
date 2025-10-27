@@ -32,6 +32,7 @@ export function ChoghadiyaViewer() {
     const [choghadiya, setChoghadiya] = useState<any>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [expandedPeriods, setExpandedPeriods] = useState<Set<number>>(new Set());
     useEffect(() => {
       let cancelled = false;
       setLoading(true);
@@ -132,28 +133,30 @@ export function ChoghadiyaViewer() {
           {period.type === 'auspicious' ? 'Best for:' : period.type === 'inauspicious' ? 'Avoid:' : 'Activities:'}
         </p>
         <div className="flex flex-wrap gap-1">
-          {period.activities.slice(0, 3).map((activity, idx) => (
+          {(expandedPeriods.has(index) ? period.activities : period.activities.slice(0, 3)).map((activity, idx) => (
             <Badge key={idx} variant="secondary" className="text-xs">
               {activity}
             </Badge>
           ))}
           {period.activities.length > 3 && (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Badge variant="outline" className="text-xs cursor-help">
-                    +{period.activities.length - 3} more
-                  </Badge>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <div className="space-y-1">
-                    {period.activities.slice(3).map((activity, idx) => (
-                      <p key={idx} className="text-xs">• {activity}</p>
-                    ))}
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <Badge 
+              variant="outline" 
+              className="text-xs cursor-pointer hover:bg-accent"
+              onClick={() => {
+                const newExpanded = new Set(expandedPeriods);
+                if (expandedPeriods.has(index)) {
+                  newExpanded.delete(index);
+                } else {
+                  newExpanded.add(index);
+                }
+                setExpandedPeriods(newExpanded);
+              }}
+            >
+              {expandedPeriods.has(index) 
+                ? 'Show less' 
+                : `+${period.activities.length - 3} more`
+              }
+            </Badge>
           )}
         </div>
       </div>
@@ -269,46 +272,7 @@ export function ChoghadiyaViewer() {
           </div>
         )}
       </Card>
-      {/* Day/Night Toggle */}
-      <div className="flex justify-center gap-2">
-        <Button
-          variant={!showNight ? 'default' : 'outline'}
-          onClick={() => setShowNight(false)}
-          className="gap-2"
-        >
-          <Sun className="w-4 h-4" />
-          Day Choghadiya
-        </Button>
-        <Button
-          variant={showNight ? 'default' : 'outline'}
-          onClick={() => setShowNight(true)}
-          className="gap-2"
-        >
-          <Moon className="w-4 h-4" />
-          Night Choghadiya
-        </Button>
-      </div>
-      {/* Choghadiya Periods */}
-      <div className="space-y-4">
-        <h2 className="flex items-center gap-2">
-          {showNight ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
-          {showNight ? 'Night' : 'Day'} Periods ({showNight ? choghadiya?.night?.length || 0 : choghadiya?.day?.length || 0})
-        </h2>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {(showNight ? choghadiya?.night : choghadiya?.day)?.map((period: ChoghadiyaPeriod, idx: number) => {
-            const isCurrent = isToday && currentPeriod?.name === period.name && currentPeriod?.startTime === period.startTime;
-            return renderPeriod(period, idx, isCurrent);
-          })}
-        </div>
-      </div>
-      {/* Information */}
-      <Card className="p-6 bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800">
-        <div className="mt-4 flex gap-2">
-          <Button onClick={goToToday} variant="secondary" size="sm">
-            Today
-          </Button>
-        </div>
-      </Card>
+      
       {/* Current Status */}
       {isToday && currentPeriod && (
         <Card className="p-6 bg-gradient-to-br from-purple-500 to-pink-500 text-white">
@@ -385,40 +349,6 @@ export function ChoghadiyaViewer() {
           The day is divided into 8 periods during the day and 8 during the night, each ruled by a different planet.
         </p>
       </Card>
-      
-      {/* Current Status */}
-      {isToday && currentPeriod && (
-        <Card className="p-6 bg-gradient-to-br from-purple-500 to-pink-500 text-white">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-white mb-2">Current Choghadiya</h2>
-              <div className="flex items-center gap-3">
-                <div className="text-4xl">
-                  {getTypeIcon(currentPeriod.type)}
-                </div>
-                <div>
-                  <h3 className="text-white text-2xl">{currentPeriod.name}</h3>
-                  <p className="text-white/90 text-sm mt-1">
-                    {currentPeriod.startTime} - {currentPeriod.endTime}
-                  </p>
-                </div>
-              </div>
-            </div>
-            <Badge className={`text-lg px-4 py-2 ${
-              currentPeriod.type === 'auspicious' 
-                ? 'bg-green-600' 
-                : currentPeriod.type === 'inauspicious'
-                ? 'bg-red-600'
-                : 'bg-gray-600'
-            } text-white`}>
-              {currentPeriod.type === 'auspicious' ? 'Auspicious' : currentPeriod.type === 'inauspicious' ? 'Inauspicious' : 'Neutral'}
-            </Badge>
-          </div>
-          <p className="text-white/90 mt-4">
-            {currentPeriod.description}
-          </p>
-        </Card>
-      )}
     </div>
   );
 }

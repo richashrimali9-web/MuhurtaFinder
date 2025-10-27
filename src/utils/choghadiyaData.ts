@@ -67,16 +67,41 @@ export function calculateChoghadiya(date: Date, sunrise: string, sunset: string)
   const nightDuration = (24 * 60) - dayDuration;
   const nightChoghadiyaDuration = nightDuration / 8;
   
-  // Adjust sequence based on weekday
+  // Adjust sequence based on weekday using traditional Choghadiya rotation
+  // According to mPanchang and traditional Vedic astrology:
+  // The day Choghadiya sequence rotates based on the ruling planet of the weekday
+  // Base sequence: Udveg(Sun), Char(Venus), Labh(Mercury), Amrit(Moon), Kaal(Saturn), Shubh(Jupiter), Rog(Mars), Udveg(Sun)
+  // Each weekday starts with its ruling lord's Choghadiya
   const weekday = date.getDay();
   const daySequence = [...dayChoghadiyaSequence];
   const nightSequence = [...nightChoghadiyaSequence];
   
-  // Rotate based on weekday (traditional Choghadiya calculation)
-  const rotateAmount = weekday;
-  for (let i = 0; i < rotateAmount; i++) {
+  // Map weekday to the starting Choghadiya based on mPanchang verified data
+  // The pattern is: each day starts with the Choghadiya ruled by that day's lord
+  const weekdayToStartIndex: Record<number, number> = {
+    0: 0, // Sunday starts with Udveg (ruled by Sun)
+    1: 3, // Monday starts with Amrit (ruled by Moon) - VERIFIED with mPanchang Oct 27, 2025
+    2: 6, // Tuesday starts with Rog (ruled by Mars)
+    3: 2, // Wednesday starts with Labh (ruled by Mercury)
+    4: 5, // Thursday starts with Shubh (ruled by Jupiter)
+    5: 1, // Friday starts with Char (ruled by Venus)
+    6: 4  // Saturday starts with Kaal (ruled by Saturn)
+  };
+  
+  const startIndex = weekdayToStartIndex[weekday];
+  
+  // Rotate day sequence to start with the correct lord for the weekday
+  for (let i = 0; i < startIndex; i++) {
     const first = daySequence.shift();
     if (first) daySequence.push(first);
+  }
+  
+  // Night sequence also rotates similarly
+  // Night starts 4 positions ahead in the cycle from where day started
+  const nightStartIndex = (startIndex + 4) % 8;
+  for (let i = 0; i < nightStartIndex; i++) {
+    const first = nightSequence.shift();
+    if (first) nightSequence.push(first);
   }
   
   // Calculate day Choghadiya periods

@@ -82,22 +82,22 @@ export function PersonalizedMuhurta() {
     loadPersonalizedDates();
   }, [profile]);
   
-  const handleSaveProfile = () => {
+  const handleSaveProfile = async () => {
     if (!name || !birthDate || !birthTime) {
       alert('Please fill all fields');
       return;
     }
     
-    // Calculate moon sign based on birth date (simplified)
+    // Calculate moon sign based on actual Panchang data from birth date
     const date = new Date(birthDate);
-    const moonSignIndex = (date.getDate() + date.getMonth()) % 12;
+    const birthPanchang = await calculatePanchang(date, birthPlace);
     
     const newProfile: UserProfile = {
       name,
       birthDate: date,
       birthTime,
       birthPlace,
-      moonSign: moonSigns[moonSignIndex]
+      moonSign: birthPanchang.moonSign // Use actual calculated moon sign from Panchang
     };
     
     setProfile(newProfile);

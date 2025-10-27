@@ -54,15 +54,12 @@ export function MuhurtaFinder() {
   useEffect(() => {
     let isMounted = true;
     async function fetchDates() {
-      console.log('Starting to fetch dates for', months[selectedMonth], selectedYear);
       setLoading(true);
       setError(null);
       try {
         const daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        
-        console.log(`Fetching ${daysInMonth} days for ${months[selectedMonth]} ${selectedYear}`);
         
         // Create array of all dates in the month
         const datesToFetch: Date[] = [];
@@ -73,15 +70,12 @@ export function MuhurtaFinder() {
           datesToFetch.push(date);
         }
         
-        console.log(`After filtering, ${datesToFetch.length} dates to fetch`);
-        
         // Batch process to avoid rate limiting (process 10 at a time)
         const batchSize = 10;
         const allResults: Array<any> = [];
         
         for (let i = 0; i < datesToFetch.length; i += batchSize) {
           const batch = datesToFetch.slice(i, i + batchSize);
-          console.log(`Fetching batch ${Math.floor(i/batchSize) + 1}/${Math.ceil(datesToFetch.length/batchSize)} (${batch.length} dates)`);
           
           const batchPromises = batch.map(date =>
             calculatePanchang(date, selectedCity.name, selectedCity.lat, selectedCity.lon)
@@ -100,8 +94,6 @@ export function MuhurtaFinder() {
             await new Promise(resolve => setTimeout(resolve, 50)); // Reduced to 50ms
           }
         }
-        
-        console.log(`Fetched ${allResults.filter(r => r !== null).length} results successfully`);
         
         // Filter and process results
         const dates = allResults
@@ -128,18 +120,9 @@ export function MuhurtaFinder() {
             }
           });
         
-        console.log(`After filtering by score (>=${minScore}), ${dates.length} dates remain`);
-        
         if (isMounted) {
-          console.log('Setting muhurtaDates state with', dates.length, 'dates');
           setMuhurtaDates(dates);
           setLoading(false);
-          console.log('Dates loaded successfully!');
-          
-          // Debug: Check state after a short delay
-          setTimeout(() => {
-            console.log('State check - muhurtaDates should now have', dates.length, 'items');
-          }, 100);
         }
       } catch (err) {
         console.error('Error fetching muhurta dates:', err);
