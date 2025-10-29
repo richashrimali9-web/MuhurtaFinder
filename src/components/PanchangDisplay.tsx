@@ -194,7 +194,7 @@ export function PanchangDisplay() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-gradient text-3xl sm:text-4xl font-semibold tracking-tight mx-auto">Astro Event Planner</h1>
           <p className="text-muted-foreground text-sm mt-1 mx-auto">Daily Panchang Guide</p>
-          <div className="mt-3 border-t border-purple-200/60"></div>
+          <div className="mt-3 border-t border-orange-200/60"></div>
         </div>
       </Card>
 
@@ -214,10 +214,10 @@ export function PanchangDisplay() {
       
       
   {/* Date and Location Selector */}
-  <Card className="p-4 sm:p-6 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 border-blue-200 dark:border-blue-800 rounded-2xl shadow-sm transition-shadow hover:shadow-md glass-card">
-        <div className="grid gap-3 sm:gap-4 mb-4">
+  <Card className="p-6 sm:p-8 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/20 dark:to-amber-950/20 border-2 border-orange-400 dark:border-orange-800 rounded-2xl shadow-lg transition-shadow hover:shadow-xl card-enhanced">
+        <div className="grid gap-4 sm:gap-6 mb-4">
           <div className="space-y-2">
-            <Label htmlFor="location" className="flex items-center gap-2 text-xs sm:text-sm">
+            <Label htmlFor="location" className="flex items-center gap-2 text-sm sm:text-base font-semibold">
               <MapPin className="w-4 h-4" />
               Location
             </Label>
@@ -343,17 +343,17 @@ export function PanchangDisplay() {
                     <desc id="grade-desc">Daily auspiciousness: {panchang.qualityScore}%</desc>
                     <defs>
                       <linearGradient id={gradientId} x1="0%" x2="100%">
-                        <stop offset="0%" stopColor="var(--chart-1, #f59e0b)" />
-                        <stop offset="50%" stopColor="var(--chart-5, #f97316)" />
-                        <stop offset="100%" stopColor="var(--chart-2, #60a5fa)" />
+                        <stop offset="0%" stopColor="#f4a300" />
+                        <stop offset="50%" stopColor="#DAA520" />
+                        <stop offset="100%" stopColor="#B8860B" />
                       </linearGradient>
                     </defs>
-                    <path d="M18 2.0845a15.9155 15.9155 0 1 1 0 31.831a15.9155 15.9155 0 1 1 0-31.831" fill="none" strokeOpacity="0.08" strokeWidth="4" stroke="var(--muted-foreground, #6b7280)" />
+                    <path d="M18 2.0845a15.9155 15.9155 0 1 1 0 31.831a15.9155 15.9155 0 1 1 0-31.831" fill="none" strokeOpacity="0.3" strokeWidth="4" stroke="#C4A777" />
                     <path
                       d="M18 2.0845a15.9155 15.9155 0 1 1 0 31.831a15.9155 15.9155 0 1 1 0-31.831"
                       fill="none"
                       stroke={`url(#${gradientId})`}
-                      strokeWidth="4"
+                      strokeWidth="4.5"
                       strokeDasharray={dash}
                       strokeLinecap="round"
                     />
@@ -415,8 +415,8 @@ export function PanchangDisplay() {
       {(() => {
         const insights = getActionableInsights(panchang);
         return (
-          <Card className="p-6 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 border-purple-200 dark:border-purple-800 rounded-lg shadow-sm transition-shadow hover:shadow-md">
-            <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold">
+          <Card className="p-8 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/20 dark:to-amber-950/20 border-2 border-orange-400 dark:border-orange-800 rounded-lg shadow-lg transition-shadow hover:shadow-xl card-enhanced">
+            <h2 className="mb-6 flex items-center gap-2 text-2xl font-bold">
               💡 Today's Do's and Don'ts
             </h2>
             
@@ -461,13 +461,13 @@ export function PanchangDisplay() {
               
               {/* Lucky Activities */}
               <div className="space-y-2 md:col-span-2">
-                <h3 className="flex items-center gap-2 font-semibold text-purple-700 dark:text-purple-400">
+                <h3 className="flex items-center gap-2 font-semibold text-orange-700 dark:text-orange-400">
                   🌟 Lucky Activities
                 </h3>
                 {insights.luckyActivities.length > 0 ? (
                   <div className="flex flex-wrap gap-2">
                     {insights.luckyActivities.map((activity, idx) => (
-                      <Badge key={idx} variant="secondary" className="bg-purple-200 dark:bg-purple-800 text-purple-900 dark:text-purple-100">
+                      <Badge key={idx} variant="secondary" className="bg-orange-200 dark:bg-orange-800 text-orange-900 dark:text-orange-100">
                         {activity}
                       </Badge>
                     ))}
@@ -499,8 +499,8 @@ export function PanchangDisplay() {
               <TooltipTrigger asChild>
                 <Card className="p-3 sm:p-4 rounded-2xl shadow-sm transition-shadow hover:shadow-lg cursor-help glass-card flex flex-col justify-center min-h-[72px]">
                   <div className="flex items-start gap-2 sm:gap-3">
-                    <div className="p-1.5 sm:p-2 rounded-lg bg-purple-100 dark:bg-purple-900/20 flex-shrink-0">
-                      <item.icon className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600 dark:text-purple-400" />
+                    <div className="p-1.5 sm:p-2 rounded-lg bg-orange-100 dark:bg-orange-900/20 flex-shrink-0">
+                      <item.icon className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600 dark:text-orange-400" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1 sm:gap-2">
@@ -619,7 +619,7 @@ export function PanchangDisplay() {
       {/* Social share area: visible label + centered icon buttons with tooltips, hover & focus styles */}
       <div className="w-full flex justify-center items-center gap-4 py-4">
         <div className="flex items-center gap-3">
-          <div className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-gradient-to-r from-indigo-100 to-indigo-200 text-indigo-700 shadow-sm">
+          <div className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-gradient-to-r from-orange-100 to-amber-200 text-orange-700 shadow-sm">
             <FaShareAlt className="w-4 h-4" />
           </div>
           <span className="text-sm font-medium">Share</span>
@@ -705,7 +705,7 @@ export function PanchangDisplay() {
         </p>
       </div>
       {/* Information Box */}
-  <Card className="p-4 sm:p-6 bg-purple-50 dark:bg-purple-950/20 border-purple-200 dark:border-purple-800 rounded-lg shadow-sm transition-shadow hover:shadow-md">
+  <Card className="p-4 sm:p-6 bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-800 rounded-lg shadow-sm transition-shadow hover:shadow-md">
         <h3 className="mb-2 text-base sm:text-lg font-semibold">What is Panchang?</h3>
         <p className="text-muted-foreground text-xs sm:text-sm leading-relaxed">
           Panchang is a Hindu calendar and almanac that provides important astronomical and astrological data for each day. 

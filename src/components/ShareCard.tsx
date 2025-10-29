@@ -50,7 +50,7 @@ export function ShareCard({ date, city, panchang }: ShareCardProps) {
       <div style={{ display: 'flex', justifyContent: 'center' }}>
         <Button
           onClick={handleShareCard}
-          className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white"
+          className="flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white"
         >
           📤 Share Card
         </Button>

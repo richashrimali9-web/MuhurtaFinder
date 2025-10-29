@@ -57,31 +57,49 @@ export default function TimeslotList({ dateInfo }: { dateInfo: any }) {
   }
 
   return (
-    <div className="mt-3 p-2 rounded-md bg-gray-50 dark:bg-gray-900/40 border-l-4 border-purple-200 dark:border-purple-700">
-      <div className="flex items-center justify-between">
-        <div className="text-sm font-medium">Suggested times</div>
-        <button className="text-xs text-muted-foreground" onClick={() => setExpanded((p) => !p)} aria-expanded={expanded}>
-          {expanded ? 'Less' : `More (${slots.length})`}
+    <div className="space-y-3">
+      <div className="flex items-center justify-between mb-3">
+        <h4 className="text-base font-bold text-gray-900">Suggested times</h4>
+        <button 
+          className="text-sm font-medium text-gray-600 hover:text-gray-900 hover:underline" 
+          onClick={() => setExpanded((p) => !p)} 
+          aria-expanded={expanded}
+        >
+          {expanded ? 'Show less' : `More (${slots.length})`}
         </button>
       </div>
 
-      <div className="mt-2 flex flex-col gap-2 max-h-36 overflow-y-auto">
+      <div className="space-y-2.5">
         {top.map((s, i) => {
-          const start = new Date(s.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-          const end = new Date(s.end).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          const start = new Date(s.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+          const end = new Date(s.end).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
           const displayIdx = expanded ? i : 0;
           return (
-            <div key={i} className="flex items-center justify-between gap-3">
-              <div className="min-w-0">
-                <div className="font-medium text-sm truncate">
-                  {start} — {end} <span className="text-xs text-green-600 ml-2">{s.score}%</span>
+            <div 
+              key={i} 
+              className="relative"
+            >
+              <div 
+                className="flex items-center justify-between gap-3 p-3.5 border border-gray-200 hover:border-gray-300 transition-all bg-white"
+                style={{ 
+                  borderRadius: '8px',
+                  boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
+                }}
+              >
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-3">
+                    <span className="font-bold text-base text-gray-900 whitespace-nowrap">
+                      {start} — {end}
+                    </span>
+                    <span className="text-sm font-bold text-green-600 px-2 py-0.5">
+                      {s.score}%
+                    </span>
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">{(s.reasons || []).join(' · ')}</div>
                 </div>
-                <div className="text-xs text-muted-foreground truncate">{(s.reasons || []).join(' · ')}</div>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="relative">
+                <div className="flex items-center flex-shrink-0 gap-2">
                   <button
-                    className="w-9 h-9 p-0 flex items-center justify-center rounded border bg-white dark:bg-gray-800"
+                    className="p-1.5 hover:bg-gray-100 rounded transition-colors"
                     onClick={async () => {
                       const fullText = `${dateInfo.date.toLocaleDateString('en-IN')} ${start} - ${end} (Quality: ${s.score}%)`;
                       await copyText(fullText);
@@ -90,21 +108,23 @@ export default function TimeslotList({ dateInfo }: { dateInfo: any }) {
                     }}
                     title="Copy time"
                   >
-                    <ClipboardIcon className="w-4 h-4" />
+                    <ClipboardIcon className="w-5 h-5 text-gray-600" />
                   </button>
-                  {copiedIndex === displayIdx && (
-                    <div className="absolute -top-8 right-0 bg-black text-white text-xs px-2 py-1 rounded">Copied</div>
-                  )}
+                  <button
+                    className="p-1.5 hover:bg-gray-100 rounded transition-colors"
+                    onClick={() => downloadIcs(s, displayIdx)}
+                    aria-label="Add to calendar"
+                    title="Add to calendar"
+                  >
+                    <CalendarIcon className="w-5 h-5 text-gray-600" />
+                  </button>
                 </div>
-                <button
-                  className="w-9 h-9 p-0 flex items-center justify-center rounded border bg-white dark:bg-gray-800"
-                  onClick={() => downloadIcs(s, displayIdx)}
-                  aria-label="Add to calendar"
-                  title="Add to calendar"
-                >
-                  <CalendarIcon className="w-4 h-4" />
-                </button>
               </div>
+              {copiedIndex === displayIdx && (
+                <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                  Copied!
+                </div>
+              )}
             </div>
           );
         })}

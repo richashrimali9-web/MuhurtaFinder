@@ -1,3 +1,6 @@
+/* Modern font import */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+
 @custom-variant dark (&:is(.dark *));
 
 :root {
@@ -12,80 +15,95 @@
   --text-3xl: 1.75rem; /* 28px */
   --text-xs-2: 0.65rem; /* 10.4px - extra small for micro labels */
   --text-xxs: 0.55rem; /* 8.8px - tiny captions */
-  --background: #ffffff;
-  --foreground: #1a1a1a;
-  --card: #ffffff;
-  --card-foreground: #1a1a1a;
-  --popover: #ffffff;
-  --popover-foreground: #1a1a1a;
-  --primary: #030213;
+  
+  /* Spiritual Hindu Color Theme - Enhanced Contrast & Clarity */
+  --saffron: #f4a300; /* Deep Saffron - High contrast primary */
+  --saffron-light: #FFA500; /* Bright Orange for highlights */
+  --saffron-dark: #C17A00; /* Dark saffron for text - better readability */
+  --sandalwood: #ecd9ba; /* Enhanced sandalwood - warmer, more visible */
+  --sandalwood-light: #F5E6D3; /* Light sandalwood for backgrounds */
+  --sandalwood-dark: #C4A777; /* Dark sandalwood for emphasis */
+  --gold: #DAA520; /* Goldenrod - Rich gold */
+  --gold-light: #f8e7ac; /* Soft gold accent - subtle highlights */
+  --gold-dark: #B8860B; /* Dark goldenrod for readable text */
+  --cream: #FFF8DC; /* Cornsilk - Warm cream */
+  --terracotta: #D2691E; /* Chocolate/Terracotta for warm accents */
+  
+  --background: #FFF8DC; /* Cornsilk - visible warm background */
+  --foreground: #3D2817; /* Very dark brown for maximum contrast */
+  --card: #FAF3E7; /* Warm white - more visible cards with better contrast */
+  --card-foreground: #3D2817; /* Very dark brown text on cards */
+  --popover: #FAF3E7;
+  --popover-foreground: #3D2817;
+  --primary: var(--saffron);
   --primary-foreground: #ffffff;
-  --secondary: #f3f1ff;
-  --secondary-foreground: #030213;
-  --muted: #ececf0;
-  --muted-foreground: #717182;
-  --accent: #e9ebef;
-  --accent-foreground: #030213;
+  --secondary: #ecd9ba; /* Enhanced sandalwood */
+  --secondary-foreground: #3D2817; /* Very dark brown text */
+  --muted: #D2B48C; /* Tan - visible muted */
+  --muted-foreground: #4A3220; /* Darker brown for better readability */
+  --accent: #f4a300; /* Deep saffron accent */
+  --accent-foreground: #FFFFFF;
   --destructive: #d4183d;
   --destructive-foreground: #ffffff;
-  --border: rgba(0, 0, 0, 0.1);
+  --border: #C4A777; /* Dark sandalwood - more visible borders */
   --input: transparent;
-  --input-background: #f3f3f5;
-  --switch-background: #cbced4;
+  --input-background: #FAF3E7; /* Warm white for inputs */
+  --switch-background: #D2B48C;
   --font-weight-medium: 500;
   --font-weight-normal: 400;
-  --ring: #e0e0e0;
-  --chart-1: #f59e0b;
-  --chart-2: #3b82f6;
-  --chart-3: #6366f1;
-  --chart-4: #84cc16;
-  --chart-5: #f97316;
-  --radius: 0.625rem;
-  --sidebar: #fafafa;
-  --sidebar-foreground: #1a1a1a;
-  --sidebar-primary: #030213;
+  --ring: var(--saffron);
+  --chart-1: var(--saffron);
+  --chart-2: var(--gold);
+  --chart-3: var(--terracotta);
+  --chart-4: #CD853F; /* Peru */
+  --chart-5: #DEB887; /* Burlywood */
+  --radius: 0.75rem; /* Slightly larger radius for modern feel */
+  --sidebar: #FAF3E7;
+  --sidebar-foreground: #3D2817;
+  --sidebar-primary: var(--saffron);
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f5f5f5;
-  --sidebar-accent-foreground: #333333;
-  --sidebar-border: #e5e5e5;
-  --sidebar-ring: #e0e0e0;
+  --sidebar-accent: #ecd9ba;
+  --sidebar-accent-foreground: #3D2817;
+  --sidebar-border: #C4A777;
+  --sidebar-ring: var(--saffron);
 }
 
 .dark {
-  --background: #1a1a1a;
-  --foreground: #ffffff;
-  --card: #1a1a1a;
-  --card-foreground: #ffffff;
-  --popover: #1a1a1a;
-  --popover-foreground: #ffffff;
-  --primary: #ffffff;
-  --primary-foreground: #333333;
-  --secondary: #333333;
-  --secondary-foreground: #ffffff;
-  --muted: #333333;
-  --muted-foreground: #999999;
-  --accent: #333333;
-  --accent-foreground: #ffffff;
+  /* Dark mode with warm spiritual tones */
+  --background: #2A1810;
+  --foreground: #F5E6D3;
+  --card: #3D2517;
+  --card-foreground: #F5E6D3;
+  --popover: #3D2517;
+  --popover-foreground: #F5E6D3;
+  --primary: var(--saffron-light);
+  --primary-foreground: #2A1810;
+  --secondary: #4A3728;
+  --secondary-foreground: #F5E6D3;
+  --muted: #4A3728;
+  --muted-foreground: #C4B5A0;
+  --accent: var(--gold-dark);
+  --accent-foreground: #FFF9F0;
   --destructive: #ff6b6b;
   --destructive-foreground: #ffffff;
-  --border: #333333;
-  --input: #333333;
-  --ring: #666666;
+  --border: #5A4632;
+  --input: #4A3728;
+  --ring: var(--gold);
   --font-weight-medium: 500;
   --font-weight-normal: 400;
-  --chart-1: #6366f1;
-  --chart-2: #06b6d4;
-  --chart-3: #f97316;
-  --chart-4: #ec4899;
-  --chart-5: #f59e0b;
-  --sidebar: #252525;
-  --sidebar-foreground: #ffffff;
-  --sidebar-primary: #6366f1;
+  --chart-1: var(--saffron-light);
+  --chart-2: var(--gold-light);
+  --chart-3: #E07B53;
+  --chart-4: #D4AF37;
+  --chart-5: #C4A05A;
+  --sidebar: #3D2517;
+  --sidebar-foreground: #F5E6D3;
+  --sidebar-primary: var(--saffron);
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #333333;
-  --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: #333333;
-  --sidebar-ring: #666666;
+  --sidebar-accent: #4A3728;
+  --sidebar-accent-foreground: #F5E6D3;
+  --sidebar-border: #5A4632;
+  --sidebar-ring: var(--gold);
 }
 
 @theme inline {
@@ -139,44 +157,43 @@
   }
 }
 
-/* Modern font and subtle background */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
-
 html, body {
   font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
 }
 
-/* Gentle pastel palette overrides for the app */
+/* Gentle pastel palette overrides for the app - Spiritual Hindu Theme */
 :root {
-  --pastel-1: #f8f0ff; /* lavender */
-  --pastel-2: #fff7ed; /* peach */
-  --pastel-3: #eef2ff; /* blue */
-  --pastel-4: #fef3f2; /* rose */
-  --glass-bg: rgba(255,255,255,0.6);
-  --glass-border: rgba(255,255,255,0.56);
-  /* Additional pastel/accent tokens used by components */
-  --pastel-yellow: #fef3c7;
-  --pastel-yellow-dark: #fde68a;
-  --accent-yellow: #fbbf24;
-  --accent-yellow-foreground: #92400e;
+  /* Spiritual warm tones inspired by temple colors */
+  --pastel-1: #FFF8ED; /* light sandalwood */
+  --pastel-2: #FFE8CC; /* light saffron */
+  --pastel-3: #F5E6D3; /* sandalwood */
+  --pastel-4: #FFD9B3; /* warm peach */
+  --glass-bg: rgba(255, 249, 240, 0.7);
+  --glass-border: rgba(255, 153, 51, 0.3);
+  
+  /* Spiritual accent colors */
+  --pastel-yellow: #FFF4CC;
+  --pastel-yellow-dark: #FFEAA3;
+  --accent-yellow: var(--gold);
+  --accent-yellow-foreground: var(--gold-dark);
 
-  --pastel-orange: #fed7aa;
-  --pastel-orange-dark: #fdba74;
-  --accent-orange: #f97316;
-  --accent-orange-foreground: #7c2d12;
+  --pastel-orange: #FFDAB3;
+  --pastel-orange-dark: #FFC999;
+  --accent-orange: var(--saffron);
+  --accent-orange-foreground: var(--saffron-dark);
 
-  --pastel-blue: #dbeafe;
-  --pastel-blue-dark: #bfdbfe;
-  --accent-blue: #60a5fa;
-  --accent-blue-foreground: #0c4a6e;
+  --pastel-blue: #E8D4B8;
+  --pastel-blue-dark: #D9C4A8;
+  --accent-blue: #B8941F;
+  --accent-blue-foreground: #8B6914;
 
-  --pastel-green: #ecfdf5;
-  --pastel-green-dark: #d1fae5;
+  --pastel-green: #F5E6D3;
+  --pastel-green-dark: #E8D4B8;
 
-  --accent-purple: #e9d5ff;
+  --accent-purple: #FFDAB3;
 
   /* Chart/semantic foreground tokens */
-  --chart-4-foreground: #065f46;
+  --chart-4-foreground: var(--saffron-dark);
 
   /* Brand colors for social buttons */
   --brand-whatsapp: #25D366;
@@ -185,44 +202,44 @@ html, body {
   --brand-instagram: linear-gradient(135deg, #F58529 0%, #DD2A7B 50%, #8134AF 100%);
 }
 
-/* Glassmorphism helper */
+/* Glassmorphism helper - Spiritual theme */
 .glass-card {
-  background: linear-gradient(180deg, rgba(255,255,255,0.6), rgba(255,255,255,0.5));
+  background: linear-gradient(180deg, rgba(255, 249, 240, 0.8), rgba(245, 230, 211, 0.7));
   backdrop-filter: blur(6px) saturate(120%);
   -webkit-backdrop-filter: blur(6px) saturate(120%);
-  border: 1px solid rgba(255,255,255,0.5);
+  border: 1px solid rgba(255, 153, 51, 0.3);
 }
 
-/* Header animated gradient */
+/* Header animated gradient - Saffron to Gold */
 .header-gradient {
-  background: linear-gradient(90deg, rgba(147,51,234,0.18) 0%, rgba(236,72,153,0.14) 50%, rgba(99,102,241,0.12) 100%);
+  background: linear-gradient(90deg, rgba(255, 153, 51, 0.15) 0%, rgba(212, 175, 55, 0.12) 50%, rgba(224, 123, 83, 0.10) 100%);
   position: relative;
 }
 .header-gradient::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(120deg, rgba(99,102,241,0.06), rgba(236,72,153,0.04), rgba(147,51,234,0.06));
+  background: linear-gradient(120deg, rgba(255, 153, 51, 0.08), rgba(212, 175, 55, 0.06), rgba(255, 179, 102, 0.08));
   mix-blend-mode: screen;
   pointer-events: none;
 }
 
-/* Animated subtle glow */
+/* Animated subtle glow - Warm spiritual glow */
 .header-glow {
   animation: headerPulse 6s ease-in-out infinite;
 }
 @keyframes headerPulse {
-  0% { box-shadow: 0 0 18px rgba(147,51,234,0.06); }
-  50% { box-shadow: 0 0 34px rgba(236,72,153,0.08); }
-  100% { box-shadow: 0 0 18px rgba(147,51,234,0.06); }
+  0% { box-shadow: 0 0 18px rgba(255, 153, 51, 0.15); }
+  50% { box-shadow: 0 0 34px rgba(212, 175, 55, 0.20); }
+  100% { box-shadow: 0 0 18px rgba(255, 153, 51, 0.15); }
 }
 
-/* Subtle star/mandala background pattern */
+/* Subtle mandala/rangoli background pattern */
 body::before {
   content: '';
   position: fixed;
   inset: 0;
-  background-image: radial-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), radial-gradient(rgba(0,0,0,0.02) 1px, transparent 1px);
+  background-image: radial-gradient(rgba(255, 153, 51, 0.03) 1px, transparent 1px), radial-gradient(rgba(212, 175, 55, 0.02) 1px, transparent 1px);
   background-position: 0 0, 25px 25px;
   background-size: 50px 50px;
   pointer-events: none;
@@ -289,10 +306,124 @@ html {
   font-size: var(--font-size);
 }
 
-/* Custom gradient text utility */
+/* Custom gradient text utility - Deep Saffron to Rich Gold gradient */
 .text-gradient {
-  background: linear-gradient(135deg, #9333ea 0%, #ec4899 100%);
+  background: linear-gradient(135deg, #f4a300 0%, #DAA520 50%, #B8860B 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(244, 163, 0, 0.3);
+}
+
+/* Enhanced Typography for Hierarchy */
+.heading-large {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--foreground);
+  letter-spacing: -0.02em;
+}
+
+.heading-medium {
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--foreground);
+}
+
+.heading-small {
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--foreground);
+}
+
+.text-emphasis {
+  font-weight: 600;
+  color: var(--saffron-dark);
+}
+
+/* Text shadow utilities for better readability on pale backgrounds */
+.text-shadow-sm {
+  text-shadow: 0 1px 2px rgba(61, 40, 23, 0.15);
+}
+
+.text-shadow {
+  text-shadow: 0 1px 3px rgba(61, 40, 23, 0.25);
+}
+
+.text-shadow-lg {
+  text-shadow: 0 2px 4px rgba(61, 40, 23, 0.35);
+}
+
+/* Gold outline for important text */
+.text-gold-outline {
+  text-shadow: 
+    -1px -1px 0 #f8e7ac,
+    1px -1px 0 #f8e7ac,
+    -1px 1px 0 #f8e7ac,
+    1px 1px 0 #f8e7ac,
+    0 2px 4px rgba(244, 163, 0, 0.3);
+  font-weight: 700;
+  color: var(--saffron-dark);
+}
+
+/* Enhanced Card Styles */
+.card-enhanced {
+  border: 2px solid var(--border);
+  box-shadow: 0 4px 12px rgba(61, 40, 23, 0.08), 0 2px 6px rgba(244, 163, 0, 0.06);
+  transition: all 0.3s ease;
+}
+
+.card-enhanced:hover {
+  box-shadow: 0 8px 20px rgba(61, 40, 23, 0.12), 0 4px 10px rgba(244, 163, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+/* Action Button Styles */
+.btn-gold {
+  background: linear-gradient(135deg, #f4a300 0%, #DAA520 100%);
+  color: white;
+  font-weight: 600;
+  padding: 0.625rem 1.25rem;
+  border-radius: var(--radius);
+  border: none;
+  box-shadow: 0 2px 8px rgba(244, 163, 0, 0.25);
+  transition: all 0.2s ease;
+}
+
+.btn-gold:hover {
+  background: linear-gradient(135deg, #DAA520 0%, #B8860B 100%);
+  box-shadow: 0 4px 12px rgba(244, 163, 0, 0.35);
+  transform: translateY(-1px);
+}
+
+.btn-gold:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(244, 163, 0, 0.3);
+}
+
+/* Icon Button Enhancement */
+.icon-btn {
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  background: var(--gold-light);
+  border: 1px solid var(--border);
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-btn:hover {
+  background: var(--saffron);
+  border-color: var(--saffron-dark);
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(244, 163, 0, 0.3);
+}
+
+.icon-btn svg {
+  width: 1.25rem;
+  height: 1.25rem;
 }

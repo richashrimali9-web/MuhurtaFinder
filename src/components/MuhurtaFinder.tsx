@@ -1,6 +1,6 @@
 ﻿import { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
-import { Calendar, Clock, MapPin, Sparkles, Filter, Download, Share2, Info, TrendingUp, TrendingDown } from 'lucide-react';
+import { Calendar, Clock, MapPin, Sparkles, Filter, Download, Share2, Info, TrendingUp, TrendingDown, Clipboard as ClipboardIcon } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
 // Select UI not used in current UI; removed to avoid unused import
@@ -8,7 +8,7 @@ import { Label } from './ui/label';
 import { Checkbox } from './ui/checkbox';
 import { Badge } from './ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from './ui/dialog';
-import { calculatePanchang, getMuhurtaForEvent, getQualityBreakdown, eventTypes, getFestivalsForMonth, getCurrentTithi, getCurrentNakshatra } from '../utils/panchangData';
+import { calculatePanchang, getMuhurtaForEvent, getQualityBreakdown, eventTypes, getCurrentTithi, getCurrentNakshatra } from '../utils/panchangData';
 import TimeslotList from './TimeslotListClean';
 import { generateTimeSlots } from '../utils/timeslots';
 import { generateCardImage } from '../utils/cardGenerator';
@@ -36,6 +36,7 @@ export function MuhurtaFinder() {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [showFilters, setShowFilters] = useState(false);
   const [sortBy, setSortBy] = useState<'date' | 'quality'>('date');
+  const [expandedCards, setExpandedCards] = useState<Set<number>>(new Set());
   
   // Filter states
   const [excludeWeekends, setExcludeWeekends] = useState(false);
@@ -136,8 +137,6 @@ export function MuhurtaFinder() {
     return () => { isMounted = false; };
   }, [eventType, selectedCity, selectedMonth, selectedYear, excludeWeekends, preferredNakshatras, excludedTithis, minScore, sortBy]);
 
-  const festivals = getFestivalsForMonth(selectedYear, selectedMonth);
-  
   const selectedEvent = eventTypes.find(e => e.value === eventType);
 
   const exportToCalendar = (date: Date) => {
@@ -282,20 +281,23 @@ export function MuhurtaFinder() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="text-center space-y-2">
-        <h1 className="text-gradient">Plan Your Auspicious Events</h1>
-        <p className="text-muted-foreground">
-          Discover auspicious dates and times for your important life events based on Vedic astrology
-        </p>
-      </div>
+    <main className="container mx-auto px-4 py-8">
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="text-center space-y-2">
+          <h1 className="text-gradient">
+            Plan Your Auspicious Events
+          </h1>
+          <p className="text-muted-foreground">
+            Discover auspicious dates and times for your important life events based on Vedic astrology
+          </p>
+        </div>
       
       {/* Input Section */}
-      <Card className="p-6 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 border-purple-200 dark:border-purple-800">
+      <Card data-slot="card" className="text-card-foreground flex flex-col gap-6 rounded-xl border p-6 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/20 dark:to-amber-950/20 border-orange-200 dark:border-orange-800">
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           <div className="space-y-2">
-            <Label htmlFor="eventType" className="flex items-center gap-2">
+            <Label htmlFor="eventType" className="text-sm leading-none font-medium select-none flex items-center gap-2">
               <Sparkles className="w-4 h-4" />
               Event Type
             </Label>
@@ -314,7 +316,7 @@ export function MuhurtaFinder() {
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="location" className="flex items-center gap-2">
+            <Label htmlFor="location" className="text-sm leading-none font-medium select-none flex items-center gap-2">
               <MapPin className="w-4 h-4" />
               Location
             </Label>
@@ -324,7 +326,6 @@ export function MuhurtaFinder() {
               onChange={e => {
                 const city = cities.find(c => c.name === e.target.value);
                 if (city) {
-                  setSelectedCity(city);
                   setSelectedCity(city);
                 }
               }}
@@ -337,7 +338,7 @@ export function MuhurtaFinder() {
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="month" className="flex items-center gap-2">
+            <Label htmlFor="month" className="text-sm leading-none font-medium select-none flex items-center gap-2">
               <Calendar className="w-4 h-4" />
               Month
             </Label>
@@ -354,7 +355,7 @@ export function MuhurtaFinder() {
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="year" className="flex items-center gap-2">
+            <Label htmlFor="year" className="text-sm leading-none font-medium select-none flex items-center gap-2">
               <Calendar className="w-4 h-4" />
               Year
             </Label>
@@ -374,12 +375,11 @@ export function MuhurtaFinder() {
         <div className="mt-4">
           <Button
             variant="outline"
-            size="sm"
             onClick={() => setShowFilters(!showFilters)}
             className="gap-2"
           >
             <Filter className="w-4 h-4" />
-            {showFilters ? 'Hide Filters' : 'Show Advanced Filters'}
+            {showFilters ? 'Hide Advanced Filters' : 'Show Advanced Filters'}
           </Button>
         </div>
         
@@ -415,16 +415,24 @@ export function MuhurtaFinder() {
           <h2>Auspicious Dates ({muhurtaDates.length} found)</h2>
           <div className="flex items-center gap-2">
             <Button
-              variant={sortBy === 'date' ? 'default' : 'outline'}
-              size="sm"
               onClick={() => setSortBy('date')}
+              style={sortBy === 'date' ? { 
+                background: 'linear-gradient(to right, #f97316, #d97706)',
+                color: 'white',
+                borderColor: '#f97316'
+              } : {}}
+              variant="outline"
             >
               By Date
             </Button>
             <Button
-              variant={sortBy === 'quality' ? 'default' : 'outline'}
-              size="sm"
               onClick={() => setSortBy('quality')}
+              style={sortBy === 'quality' ? { 
+                background: 'linear-gradient(to right, #f97316, #d97706)',
+                color: 'white',
+                borderColor: '#f97316'
+              } : {}}
+              variant="outline"
             >
               By Quality
             </Button>
@@ -434,8 +442,8 @@ export function MuhurtaFinder() {
         {loading ? (
           <Card className="p-8 text-center">
             <div className="flex justify-center items-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
-              <span className="ml-4 text-purple-500">Finding auspicious dates...</span>
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
+              <span className="ml-4 text-orange-600">Finding auspicious dates...</span>
             </div>
           </Card>
         ) : error ? (
@@ -451,17 +459,13 @@ export function MuhurtaFinder() {
           </Card>
         ) : muhurtaDates.length === 0 ? (
           <Card className="p-8 text-center">
-            <p className="text-muted-foreground">
+            <p className="text-foreground font-semibold">
               No auspicious dates found for the selected criteria. Try adjusting your filters or selecting a different month.
             </p>
           </Card>
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {muhurtaDates.map((item, idx) => {
-              const festivalOnDate = festivals.find(f => 
-                f.date.getDate() === item.date.getDate()
-              );
-              
               const topSlot = generateTimeSlots({
                 date: item.date,
                 sunrise: item.panchang?.sunrise,
@@ -470,28 +474,34 @@ export function MuhurtaFinder() {
                 nakshatra: item.panchang?.nakshatra,
                 quality: item.score,
               }, 60, 30)[0];
+              
+              const dayScoreClass = item.score >= 80
+                ? 'bg-green-100 text-green-800'
+                : item.score >= 60
+                ? 'bg-yellow-100 text-yellow-800'
+                : 'bg-orange-100 text-orange-800';
+              
+              const dayScoreTextClass = item.score >= 80
+                ? 'text-green-600'
+                : item.score >= 60
+                ? 'text-yellow-600'
+                : 'text-orange-600';
 
               return (
-                      <Card 
-                        key={idx}
-                        className={`p-4 transition-all hover:shadow-lg ${
-                          idx === 0 && !item.isPast ? 'ring-2 ring-purple-500 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20' : ''
-                        } ${item.isPast ? 'opacity-60' : ''}`}
-                      >
-                        <div className="space-y-3">
+                <Card 
+                  key={idx}
+                  className={`bg-card text-card-foreground flex flex-col gap-6 rounded-xl border p-4 transition-all hover:shadow-lg ${item.isPast ? 'opacity-60' : ''}`}
+                >
+                  <div className="space-y-3">
+                    {/* Header with date, badge and score */}
                     <div className="flex items-start justify-between">
                       <div>
                         <div className="flex items-center gap-2">
                           <h3>
-                            {item.date.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'short' })}
+                            {item.date.toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'short' })}
                           </h3>
-                          {idx === 0 && !item.isPast && (
-                            <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
-                              Best
-                            </Badge>
-                          )}
                           {item.isPast && (
-                            <Badge variant="secondary" className="text-xs">
+                            <Badge className="border-transparent bg-secondary text-secondary-foreground text-xs">
                               Past
                             </Badge>
                           )}
@@ -502,53 +512,73 @@ export function MuhurtaFinder() {
                       </div>
                       <div className="text-right">
                         <div className="flex items-center justify-end gap-3">
-                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-sm font-medium ${item.score >= 80 ? 'bg-green-100 text-green-800' : item.score >= 60 ? 'bg-yellow-100 text-yellow-800' : 'bg-orange-100 text-orange-800'}`}>
+                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-sm font-medium ${dayScoreClass}`}>
                             <Calendar className="w-3 h-3" />
                             Day
                           </span>
-                          <div className={`text-2xl ${item.score >= 80 ? 'text-green-600' : item.score >= 60 ? 'text-yellow-600' : 'text-orange-600'}`}>
+                          <div className={`text-2xl ${dayScoreTextClass}`}>
                             {item.score}%
                           </div>
                         </div>
                         <p className="text-xs text-muted-foreground">Day quality</p>
                       </div>
                     </div>
-                    {/* Prominent featured timeslot (top suggestion) */}
+
+                    {/* Featured timeslot */}
                     {topSlot && (
-                      <div className={`mt-3 p-4 rounded-lg flex items-center justify-between overflow-visible shadow-lg relative ${item.isPast ? 'bg-white/5 text-muted-foreground border border-gray-100' : 'bg-gradient-to-r from-purple-600 to-pink-500 text-white'}`} style={{ zIndex: 2 }}>
+                      <div 
+                        className={
+                          item.isPast 
+                            ? 'mt-3 p-4 rounded-lg flex items-center justify-between overflow-visible shadow-lg relative bg-orange-50 border border-orange-100'
+                            : 'mt-3 p-4 rounded-lg flex items-center justify-between overflow-visible shadow-lg relative'
+                        }
+                        style={item.isPast 
+                          ? { zIndex: 2, color: '#111827' } 
+                          : { 
+                              zIndex: 2, 
+                              color: 'white',
+                              background: 'linear-gradient(to right, #f97316, #f59e0b)'
+                            }
+                        }
+                      >
                         <div>
                           <div className="text-lg md:text-xl font-semibold leading-tight">
-                            {new Date(topSlot.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} — {new Date(topSlot.end).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            {new Date(topSlot.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })} — {new Date(topSlot.end).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}
                           </div>
-                          <div className="text-xs opacity-90">Featured suggested time</div>
+                          <div className="text-xs" style={item.isPast ? { color: '#4b5563' } : { color: 'rgba(255,255,255,0.9)' }}>Featured suggested time</div>
                         </div>
                         <div className="text-right flex flex-col items-end">
                           <div className="flex items-center gap-2">
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-sm font-medium bg-white/20 text-white/90">
+                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-sm font-medium ${
+                              item.isPast ? 'bg-orange-200 text-orange-800' : 'bg-white/20'
+                            }`}
+                            style={!item.isPast ? { color: 'white' } : {}}
+                            >
                               <Clock className="w-3 h-3" />
                               Time
                             </span>
-                            <div className="text-2xl font-bold">{topSlot.score}%</div>
+                            <div className="text-2xl font-bold" style={item.isPast ? { color: '#ea580c' } : { color: 'white' }}>{topSlot.score}%</div>
                           </div>
-                          <div className="text-xs opacity-90">Time slot quality</div>
+                          <div className="text-xs" style={item.isPast ? { color: '#4b5563' } : { color: 'rgba(255,255,255,0.9)' }}>Time slot quality</div>
                         </div>
                       </div>
                     )}
-                    
-                    {festivalOnDate && (
+
+                    {/* Festival badge if any */}
+                    {item.panchang.festival && (
                       <div className="p-2 bg-amber-50 dark:bg-amber-950/20 rounded border border-amber-200 dark:border-amber-800">
-                        <p className="text-sm">🎉 {festivalOnDate.name}</p>
+                        <p className="text-sm">🎉 {item.panchang.festival}</p>
                       </div>
                     )}
-                    
-                    {/* Compact horizontal info row */}
+
+                    {/* Panchang info */}
                     <div className="flex flex-wrap items-center gap-4 text-sm">
                       <div className="flex items-center gap-2">
                         <span className="text-muted-foreground">Tithi:</span>
                         <span className="font-medium">
                           {getCurrentTithi(item.panchang) && getCurrentTithi(item.panchang) !== 'Unknown' && getCurrentTithi(item.panchang) !== ''
                             ? getCurrentTithi(item.panchang)
-                            : <span className="text-red-600">Data unavailable</span>}
+                            : 'Unavailable'}
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
@@ -556,134 +586,209 @@ export function MuhurtaFinder() {
                         <span className="font-medium">
                           {getCurrentNakshatra(item.panchang) && getCurrentNakshatra(item.panchang) !== 'Unknown' && getCurrentNakshatra(item.panchang) !== ''
                             ? getCurrentNakshatra(item.panchang)
-                            : <span className="text-red-600">Data unavailable</span>}
+                            : 'Unavailable'}
                         </span>
                       </div>
-                    {/* Show warning if Panchang data is missing */}
-                    {(getCurrentTithi(item.panchang) === 'Unknown' || getCurrentNakshatra(item.panchang) === 'Unknown') && (
-                      <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 text-yellow-800 rounded text-xs">
-                        Panchang data for this date is unavailable from the astronomical data source. This is a known limitation for some historical/future dates.
-                      </div>
-                    )}
                       <div className="flex items-center gap-2">
                         <span className="text-muted-foreground">Sunrise:</span>
-                        <span className="font-medium">{typeof item.panchang.sunrise === 'string' ? item.panchang.sunrise : <span className="text-red-600">Data unavailable</span>}</span>
+                        <span className="font-medium">
+                          {typeof item.panchang.sunrise === 'string' ? item.panchang.sunrise : 'N/A'}
+                        </span>
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="text-muted-foreground">Sunset:</span>
-                        <span className="font-medium">{typeof item.panchang.sunset === 'string' ? item.panchang.sunset : <span className="text-red-600">Data unavailable</span>}</span>
+                        <span className="font-medium">
+                          {typeof item.panchang.sunset === 'string' ? item.panchang.sunset : 'N/A'}
+                        </span>
                       </div>
                     </div>
-                    
-                    {!item.isPast && (
-                      <div className="flex gap-2 pt-2 items-center">
-                        {/* Suggested times (kept compact) */}
-                        <TimeslotList dateInfo={item} />
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="w-9 h-9 p-0 flex items-center justify-center"
-                              title="Why this date"
-                              aria-label="Why this date"
-                            >
-                              <Info className="w-4 h-4" />
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-                            <DialogHeader>
-                              <DialogTitle>Quality Breakdown</DialogTitle>
-                              <DialogDescription>
-                                Detailed analysis of factors contributing to this date's auspiciousness score
-                              </DialogDescription>
-                            </DialogHeader>
-                            {(() => {
-                              const breakdown = getQualityBreakdown(eventType, item.panchang);
-                              return (
-                                <div className="space-y-4">
-                                  <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 rounded-lg">
-                                    <div className="text-4xl mb-2">{breakdown.total}%</div>
-                                    <p className="text-sm text-muted-foreground">Overall Quality Score</p>
+
+                    {/* Suggested times section */}
+                    <div className="flex gap-2 pt-2 items-center">
+                      <div className="mt-3 p-2 rounded-md border-l-4 border-orange-200 dark:border-orange-700 flex-1" style={{ backgroundColor: 'oklch(0.84 0.11 73.08 / 0.99)' }}>
+                        <div className="flex items-center justify-between">
+                          <div className="text-sm font-medium">Suggested times</div>
+                          <button 
+                            className="text-xs text-muted-foreground hover:text-foreground"
+                            onClick={() => {
+                              const newExpanded = new Set(expandedCards);
+                              if (newExpanded.has(idx)) {
+                                newExpanded.delete(idx);
+                              } else {
+                                newExpanded.add(idx);
+                              }
+                              setExpandedCards(newExpanded);
+                            }}
+                          >
+                            {expandedCards.has(idx) ? 'Less' : `More (${generateTimeSlots({
+                              date: item.date,
+                              sunrise: item.panchang?.sunrise,
+                              sunset: item.panchang?.sunset,
+                              tithi: item.panchang?.tithi,
+                              nakshatra: item.panchang?.nakshatra,
+                              quality: item.score,
+                            }, 60, 30).length - 1})`}
+                          </button>
+                        </div>
+                        <div className={`mt-2 flex flex-col gap-2 ${expandedCards.has(idx) ? 'max-h-none' : 'max-h-36'} overflow-y-auto`}>
+                          {generateTimeSlots({
+                            date: item.date,
+                            sunrise: item.panchang?.sunrise,
+                            sunset: item.panchang?.sunset,
+                            tithi: item.panchang?.tithi,
+                            nakshatra: item.panchang?.nakshatra,
+                            quality: item.score,
+                          }, 60, 30).slice(0, expandedCards.has(idx) ? undefined : 1).map((slot, slotIdx) => {
+                            const scoreClass = slot.score >= 80
+                              ? 'text-green-600'
+                              : slot.score >= 60
+                              ? 'text-yellow-600'
+                              : 'text-orange-600';
+                            
+                            return (
+                              <div key={slotIdx} className="flex items-center justify-between gap-3">
+                                <div className="min-w-0">
+                                  <div className="font-medium text-sm truncate">
+                                    {new Date(slot.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })} — {new Date(slot.end).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}
+                                    <span className={`text-xs ${scoreClass} ml-2`}>{slot.score}%</span>
                                   </div>
-                                  
-                                  <div className="space-y-3">
-                                    <h4>Contributing Factors:</h4>
-                                    {breakdown.factors.map((factor, fidx) => (
-                                      <div 
-                                        key={fidx}
-                                        className={`p-3 rounded-lg border ${
-                                          factor.value > 0 
-                                            ? 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800' 
-                                            : factor.value < 0
-                                            ? 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800'
-                                            : 'bg-gray-50 dark:bg-gray-950/20 border-gray-200 dark:border-gray-800'
-                                        }`}
-                                      >
-                                        <div className="flex items-start justify-between">
-                                          <div className="flex-1">
-                                            <div className="flex items-center gap-2">
-                                              {factor.value > 0 ? (
-                                                <TrendingUp className="w-4 h-4 text-green-600" />
-                                              ) : factor.value < 0 ? (
-                                                <TrendingDown className="w-4 h-4 text-red-600" />
-                                              ) : (
-                                                <span className="w-4 h-4 text-gray-400">◆</span>
-                                              )}
-                                              <span className="font-medium">{factor.name}</span>
-                                            </div>
-                                            <p className="text-sm text-muted-foreground mt-1">{factor.reason}</p>
-                                          </div>
-                                          <Badge 
-                                            variant={factor.value > 0 ? 'default' : factor.value < 0 ? 'destructive' : 'secondary'}
-                                            className="ml-2"
-                                          >
-                                            {factor.value > 0 ? '+' : ''}{factor.value}
-                                          </Badge>
-                                        </div>
-                                      </div>
-                                    ))}
+                                  <div className="text-xs text-muted-foreground truncate">
+                                    {slotIdx === 0 ? 'Featured' : 'Alternative'} slot
                                   </div>
                                 </div>
-                              );
-                            })()}
-                          </DialogContent>
-                        </Dialog>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="w-9 h-9 p-0 flex items-center justify-center"
-                          onClick={() => exportToCalendar(item.date)}
-                          title="Export to calendar"
-                          aria-label="Export to calendar"
-                        >
-                          <Download className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="w-9 h-9 p-0 flex items-center justify-center"
-                          onClick={() => shareDate(item, topSlot)}
-                          disabled={sharing}
-                          title="Share date"
-                          aria-label="Share date"
-                        >
-                          {sharing ? (
-                            <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" strokeOpacity="0.25" />
-                              <path d="M22 12a10 10 0 0 1-10 10" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
-                            </svg>
-                          ) : (
-                            <Share2 className="w-4 h-4" />
-                          )}
-                        </Button>
+                                <div className="flex items-center gap-2">
+                                  <button 
+                                    className="p-1.5 hover:bg-orange-100 rounded transition-colors" 
+                                    title="Copy time"
+                                    onClick={() => {
+                                      const timeText = `${new Date(slot.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - ${new Date(slot.end).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+                                      navigator.clipboard.writeText(timeText);
+                                    }}
+                                  >
+                                    <ClipboardIcon className="w-4 h-4" />
+                                  </button>
+                                  <button 
+                                    className="p-1.5 hover:bg-orange-100 rounded transition-colors" 
+                                    aria-label="Add to calendar" 
+                                    title="Add to calendar"
+                                  >
+                                    <Calendar className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
-                    )}
+                    </div>
+
                     {item.isPast && (
                       <div className="pt-2 text-center">
                         <p className="text-xs text-muted-foreground">Historical reference only</p>
                       </div>
                     )}
+                  </div>
+
+                  {/* Action buttons */}
+                  <div className="flex gap-2 pt-2 items-center">
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="w-9 h-9 p-0 flex items-center justify-center rounded border bg-white dark:bg-gray-800"
+                          title="Why this date"
+                          aria-label="Why this date"
+                        >
+                          <Info className="w-4 h-4" />
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                        <DialogHeader>
+                          <DialogTitle>Quality Breakdown</DialogTitle>
+                          <DialogDescription>
+                            Detailed analysis of factors contributing to this date's auspiciousness score
+                          </DialogDescription>
+                        </DialogHeader>
+                        {(() => {
+                          const breakdown = getQualityBreakdown(eventType, item.panchang);
+                          return (
+                            <div className="space-y-4">
+                              <div className="text-center p-4 bg-gradient-to-br from-orange-50 to-amber-50 rounded-lg">
+                                <div className="text-4xl mb-2 font-bold text-gray-900">{breakdown.total}%</div>
+                                <p className="text-sm text-gray-600 font-semibold">Overall Quality Score</p>
+                              </div>
+                              
+                              <div className="space-y-3">
+                                <h4 className="font-semibold">Contributing Factors:</h4>
+                                {breakdown.factors.map((factor, fidx) => (
+                                  <div 
+                                    key={fidx}
+                                    className={`p-3 rounded-lg border ${
+                                      factor.value > 0 
+                                        ? 'bg-green-50 border-green-200' 
+                                        : factor.value < 0
+                                        ? 'bg-red-50 border-red-200'
+                                        : 'bg-gray-50 border-gray-200'
+                                    }`}
+                                  >
+                                    <div className="flex items-start justify-between">
+                                      <div className="flex-1">
+                                        <div className="flex items-center gap-2">
+                                          {factor.value > 0 ? (
+                                            <TrendingUp className="w-4 h-4 text-green-600" />
+                                          ) : factor.value < 0 ? (
+                                            <TrendingDown className="w-4 h-4 text-red-600" />
+                                          ) : (
+                                            <span className="w-4 h-4 text-gray-400">◆</span>
+                                          )}
+                                          <span className="font-medium">{factor.name}</span>
+                                        </div>
+                                        <p className="text-sm text-gray-600 mt-1">{factor.reason}</p>
+                                      </div>
+                                      <Badge 
+                                        variant={factor.value > 0 ? 'default' : factor.value < 0 ? 'destructive' : 'secondary'}
+                                        className="ml-2"
+                                      >
+                                        {factor.value > 0 ? '+' : ''}{factor.value}
+                                      </Badge>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        })()}
+                      </DialogContent>
+                    </Dialog>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="w-9 h-9 p-0 flex items-center justify-center rounded border bg-white dark:bg-gray-800"
+                      onClick={() => exportToCalendar(item.date)}
+                      title="Export to calendar"
+                      aria-label="Export to calendar"
+                    >
+                      <Download className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="w-9 h-9 p-0 flex items-center justify-center rounded border bg-white dark:bg-gray-800"
+                      onClick={() => shareDate(item, topSlot)}
+                      disabled={sharing}
+                      title="Share date"
+                      aria-label="Share date"
+                    >
+                      {sharing ? (
+                        <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" strokeOpacity="0.25" />
+                          <path d="M22 12a10 10 0 0 1-10 10" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
+                        </svg>
+                      ) : (
+                        <Share2 className="w-4 h-4" />
+                      )}
+                    </Button>
                   </div>
                 </Card>
               );
@@ -692,6 +797,7 @@ export function MuhurtaFinder() {
         )}
       </div>
     </div>
+    </main>
   );
 }
 

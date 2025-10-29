@@ -129,9 +129,9 @@ export function PersonalizedMuhurta() {
       
       {/* Profile Section */}
       {!profile || isEditing ? (
-        <Card className="p-6 bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-950/20 dark:to-purple-950/20 border-indigo-200 dark:border-indigo-800">
-          <h2 className="mb-4 flex items-center gap-2">
-            <User className="w-5 h-5" />
+        <Card className="p-8 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/20 dark:to-amber-950/20 border-2 border-orange-400 dark:border-orange-800 shadow-lg card-enhanced">
+          <h2 className="mb-6 flex items-center gap-2 text-2xl font-bold">
+            <User className="w-6 h-6" />
             Create Your Profile
           </h2>
           
@@ -194,10 +194,10 @@ export function PersonalizedMuhurta() {
           </div>
         </Card>
       ) : (
-        <Card className="p-6 bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-950/20 dark:to-purple-950/20 border-indigo-200 dark:border-indigo-800">
+        <Card className="p-8 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/20 dark:to-amber-950/20 border-2 border-orange-400 dark:border-orange-800 shadow-lg card-enhanced">
           <div className="flex items-start justify-between">
-            <div className="space-y-2">
-              <h2 className="flex items-center gap-2">
+            <div className="space-y-3">
+              <h2 className="flex items-center gap-2 text-2xl font-bold">
                 <User className="w-5 h-5" />
                 {profile.name}
               </h2>
@@ -223,14 +223,14 @@ export function PersonalizedMuhurta() {
       {profile && !isEditing && (
         <div className="space-y-4">
           <div className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-purple-600" />
+            <Sparkles className="w-5 h-5 text-orange-600" />
             <h2>Your Best Muhurtas (Next 90 Days)</h2>
           </div>
           
           {isLoading ? (
             <Card className="p-8 text-center">
               <div className="flex items-center justify-center gap-2">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-orange-600"></div>
                 <p className="text-muted-foreground">Loading personalized dates...</p>
               </div>
             </Card>
@@ -245,56 +245,59 @@ export function PersonalizedMuhurta() {
               {personalizedDates.map((item, idx) => (
                 <Card 
                   key={idx}
-                  className={`p-4 transition-all hover:shadow-lg ${
-                    idx === 0 ? 'ring-2 ring-purple-500 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20' : ''
+                  style={{
+                    background: 'linear-gradient(to bottom right, #fef3c7, #fde68a)' // same warm amber for all
+                  }}
+                  className={`p-8 transition-all hover:shadow-xl card-enhanced ${
+                    idx === 0 ? 'ring-2 ring-orange-500 shadow-lg' : ''
                   }`}
                 >
-                  <div className="space-y-3">
-                    <div className="flex items-start justify-between">
+                  <div className="space-y-5">
+                    <div className="flex items-start justify-between gap-4">
                       <div>
-                        <div className="flex items-center gap-2">
-                          <h3>
+                        <div className="flex items-center gap-3 mb-2">
+                          <h3 className="text-2xl font-bold text-foreground">
                             {item.date.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'short' })}
                           </h3>
                           {idx === 0 && (
-                            <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+                            <Badge className="bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold px-3 py-1">
                               Top Pick
                             </Badge>
                           )}
                         </div>
-                        <p className="text-muted-foreground">
+                        <p className="text-base font-semibold text-foreground">
                           {item.panchang.masa}
                         </p>
                       </div>
                       <div className="text-right">
-                        <div className="text-2xl text-green-600">
+                        <div className="text-4xl font-black text-green-700 mb-2">
                           {item.score}%
                         </div>
-                        <p className="text-xs text-muted-foreground">Match</p>
+                        <p className="text-xs font-bold text-foreground">Match</p>
                       </div>
                     </div>
                     
                     {item.panchang.moonSign === profile.moonSign && (
-                      <div className="p-2 bg-purple-50 dark:bg-purple-950/20 rounded border border-purple-200 dark:border-purple-800">
+                      <div className="p-2 bg-orange-50 dark:bg-orange-950/20 rounded border border-orange-200 dark:border-orange-800">
                         <p className="text-sm">🌙 Moon in your sign!</p>
                       </div>
                     )}
                     
-                    <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <span className="text-muted-foreground">Tithi:</span>
-                        <p>{getCurrentTithi(item.panchang) ? getCurrentTithi(item.panchang) : <span className="text-red-600">Data unavailable</span>}</p>
+                        <p className="text-xs font-bold text-foreground uppercase">Tithi</p>
+                        <p className="font-bold text-foreground text-lg">{getCurrentTithi(item.panchang) ? getCurrentTithi(item.panchang) : <span className="text-red-600">Data unavailable</span>}</p>
                       </div>
                       <div>
-                        <span className="text-muted-foreground">Nakshatra:</span>
-                        <p>{getCurrentNakshatra(item.panchang) ? getCurrentNakshatra(item.panchang) : <span className="text-red-600">Data unavailable</span>}</p>
+                        <p className="text-xs font-bold text-foreground uppercase">Nakshatra</p>
+                        <p className="font-bold text-foreground text-lg">{getCurrentNakshatra(item.panchang) ? getCurrentNakshatra(item.panchang) : <span className="text-red-600">Data unavailable</span>}</p>
                       </div>
                       <div>
-                        <span className="text-muted-foreground">Moon Sign:</span>
-                        <p>{item.panchang.moonSign}</p>
+                        <p className="text-xs font-bold text-foreground uppercase">Moon Sign</p>
+                        <p className="font-bold text-foreground text-lg">{item.panchang.moonSign}</p>
                       </div>
                       <div>
-                        <span className="text-muted-foreground">Paksha:</span>
+                        <p className="text-xs font-bold text-foreground uppercase">Paksha</p>
                         <p className="text-xs">{item.panchang.paksha.split(' ')[0]}</p>
                       </div>
                     </div>

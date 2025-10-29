@@ -242,10 +242,10 @@ END:VCALENDAR`;
       </div>
       
       {/* Event Selector */}
-      <Card className="p-6 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/20 dark:to-cyan-950/20 border-blue-200 dark:border-blue-800">
-        <div className="space-y-4">
+      <Card className="p-6 sm:p-8 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/20 dark:to-amber-950/20 border-2 border-orange-400 dark:border-orange-800 shadow-lg card-enhanced">
+        <div className="space-y-6">
           <div className="space-y-2">
-            <label className="flex items-center gap-2">
+            <label className="flex items-center gap-2 text-base font-semibold">
               <Calendar className="w-4 h-4" />
               Select Event Type
             </label>
@@ -266,7 +266,7 @@ END:VCALENDAR`;
       
       {/* Countdown Display */}
       {nextMuhurta && timeRemaining && (
-        <Card className="p-8 bg-gradient-to-br from-purple-500 to-pink-500 text-white">
+        <Card className="p-8 bg-gradient-to-br from-orange-500 to-amber-500 text-white">
           <div className="text-center space-y-6">
             <div>
               <h2 className="text-white opacity-90">Next Best Muhurta for</h2>
@@ -305,7 +305,7 @@ END:VCALENDAR`;
                     })}
                   </div>
                 </div>
-                <Badge className="bg-white text-purple-600 text-lg px-4 py-2">
+                <Badge className="bg-white text-orange-600 text-lg px-4 py-2">
                   {nextMuhurta.score}% Quality
                 </Badge>
               </div>

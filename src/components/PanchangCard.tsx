@@ -105,17 +105,17 @@ export function PanchangCard({ date, city, panchang, cardId = 'panchang-share-ca
           <svg viewBox="0 0 36 36" style={{ width: '100%', height: '100%' }} role="img">
             <defs>
               <linearGradient id={gradientId} x1="0%" x2="100%">
-                <stop offset="0%" stopColor="#f59e0b" />
-                <stop offset="50%" stopColor="#f97316" />
-                <stop offset="100%" stopColor="#60a5fa" />
+                <stop offset="0%" stopColor="#f4a300" />
+                <stop offset="50%" stopColor="#DAA520" />
+                <stop offset="100%" stopColor="#B8860B" />
               </linearGradient>
             </defs>
-            <path d="M18 2.0845a15.9155 15.9155 0 1 1 0 31.831a15.9155 15.9155 0 1 1 0-31.831" fill="none" strokeOpacity="0.08" strokeWidth="4" stroke="#6b7280" />
+            <path d="M18 2.0845a15.9155 15.9155 0 1 1 0 31.831a15.9155 15.9155 0 1 1 0-31.831" fill="none" strokeOpacity="0.3" strokeWidth="4" stroke="#C4A777" />
             <path
               d="M18 2.0845a15.9155 15.9155 0 1 1 0 31.831a15.9155 15.9155 0 1 1 0-31.831"
               fill="none"
               stroke={`url(#${gradientId})`}
-              strokeWidth="4"
+              strokeWidth="4.5"
               strokeDasharray={_dash}
               strokeLinecap="round"
             />

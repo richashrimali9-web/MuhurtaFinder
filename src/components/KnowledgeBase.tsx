@@ -238,8 +238,8 @@ Opening on Diwali (Lakshmi Puja) or Akshaya Tritiya is considered extremely ausp
               <Card key={article.id} className="p-6 hover:shadow-lg transition-all">
                 <div className="space-y-4">
                   <div className="flex items-start gap-3">
-                    <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/20">
-                      <article.icon className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                    <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900/20">
+                      <article.icon className="w-5 h-5 text-orange-600 dark:text-orange-400" />
                     </div>
                     <div className="flex-1">
                       <h3>{article.title}</h3>
@@ -278,9 +278,9 @@ Opening on Diwali (Lakshmi Puja) or Akshaya Tritiya is considered extremely ausp
           </Card>
           
           {/* Additional Resources */}
-          <Card className="p-6 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 border-purple-200 dark:border-purple-800">
-            <h3 className="mb-2 flex items-center gap-2">
-              <BookOpen className="w-5 h-5" />
+          <Card className="p-8 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/20 dark:to-amber-950/20 border-2 border-orange-400 dark:border-orange-800 shadow-lg card-enhanced">
+            <h3 className="mb-4 flex items-center gap-2 text-xl font-bold">
+              <BookOpen className="w-6 h-6" />
               Need More Help?
             </h3>
             <p className="text-muted-foreground mb-4">

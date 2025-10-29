@@ -92,7 +92,7 @@ export function ChoghadiyaViewer() {
       key={index}
       className={`p-4 rounded-lg border-2 transition-all ${
         getTypeColor(period.type)
-      } ${isCurrent ? 'ring-4 ring-purple-500 scale-105' : 'hover:scale-102'}`}
+      } ${isCurrent ? 'ring-4 ring-orange-500 scale-105' : 'hover:scale-102'}`}
     >
       <div className="flex items-start justify-between mb-2">
         <div>
@@ -104,7 +104,7 @@ export function ChoghadiyaViewer() {
               {period.name}
             </h3>
             {isCurrent && (
-              <Badge className="bg-purple-600 text-white animate-pulse">
+              <Badge className="bg-orange-600 text-white animate-pulse">
                 Current
               </Badge>
             )}
@@ -189,10 +189,10 @@ export function ChoghadiyaViewer() {
         </p>
       </div>
       {/* Controls */}
-      <Card className="p-6 bg-gradient-to-br from-orange-50 to-yellow-50 dark:from-orange-950/20 dark:to-yellow-950/20 border-orange-200 dark:border-orange-800">
-        <div className="grid gap-4 md:grid-cols-2">
+      <Card className="p-6 sm:p-8 bg-gradient-to-br from-orange-50 to-yellow-50 dark:from-orange-950/20 dark:to-yellow-950/20 border-2 border-orange-400 dark:border-orange-800 shadow-lg card-enhanced">
+        <div className="grid gap-6 md:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="location" className="flex items-center gap-2">
+            <Label htmlFor="location" className="flex items-center gap-2 font-semibold">
               <MapPin className="w-4 h-4" />
               Location
             </Label>
@@ -275,7 +275,7 @@ export function ChoghadiyaViewer() {
       
       {/* Current Status */}
       {isToday && currentPeriod && (
-        <Card className="p-6 bg-gradient-to-br from-purple-500 to-pink-500 text-white">
+        <Card className="p-6 bg-gradient-to-br from-orange-500 to-amber-500 text-white">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-white mb-2">Current Choghadiya</h2>
