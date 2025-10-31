@@ -26,8 +26,8 @@ export function BaseShareCard({
       style={{
         width: `${width}px`,
         maxWidth: `${width}px`,
-        background: 'linear-gradient(135deg, #f3e8ff 0%, #fce7f3 40%, #e0e7ff 100%)',
-        borderColor: 'var(--accent, #e879f9)',
+        background: 'linear-gradient(135deg, #f3e8ff 0%, #fce7f3 40%, #e0e7ff 100%), #f3e8ff', // fallback solid color
+        borderColor: '#e879f9',
         borderWidth: '2px',
         borderStyle: 'solid',
         borderRadius: '0.75rem',

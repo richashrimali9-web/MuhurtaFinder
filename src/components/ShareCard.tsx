@@ -1,6 +1,7 @@
 import { Button } from './ui/button';
 import { PanchangData } from '../utils/panchangData';
-import { PanchangCard } from './PanchangCard';
+import { BeautifulShareCard } from './ShareableCard';
+import { eventTypes, getCurrentTithi, getCurrentNakshatra } from '../utils/panchangData';
 import { shareCardImage } from '../utils/cardGenerator';
  
 
@@ -43,7 +44,26 @@ export function ShareCard({ date, city, panchang }: ShareCardProps) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       {/* Hidden Card for Image Generation - Not visible to users */}
       <div style={{ position: 'fixed', left: '-9999px', top: '0' }}>
-        <PanchangCard date={date} city={city} panchang={exportPanchang} cardId={cardId} />
+        <BeautifulShareCard
+          eventType={(() => {
+            const evt = eventTypes?.find(e => e.value === panchang?.eventType) || eventTypes[0];
+            return evt?.label || 'Auspicious Event';
+          })()}
+          location={city}
+          date={date.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' })}
+          dayQuality={typeof panchang?.qualityScore === 'number' ? `${Math.round(panchang.qualityScore)}%` : ''}
+          tithi={getCurrentTithi(panchang)}
+          featuredTime={panchang?.auspiciousPeriods?.[0]?.startTime ? `${panchang.auspiciousPeriods[0].startTime} - ${panchang.auspiciousPeriods[0].endTime}` : ''}
+          timeQuality={panchang?.auspiciousPeriods?.[0]?.type === 'auspicious' ? 'Auspicious' : ''}
+          nakshatra={getCurrentNakshatra(panchang)}
+          sunrise={panchang?.sunrise || ''}
+          sunset={panchang?.sunset || ''}
+          moonPhase={''}
+          blessing={undefined}
+          branding={undefined}
+          cta={undefined}
+          qrCodeUrl={undefined}
+        />
       </div>
 
       {/* Share Button Only */}

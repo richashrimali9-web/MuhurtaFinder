@@ -661,7 +661,7 @@ export function getMuhurtaForEvent(eventType: string, panchang: PanchangData): n
   let score = panchang.qualityScore;
   
   // Get all nakshatras and tithis that occur during the day
-  const nakshatras = panchang.nakshatras?.map(n => n.name) || [];
+  // nakshatras already declared above if present, so remove duplicate
   const tithis = panchang.tithis?.map(t => t.name) || [];
   
   // Event-specific adjustments - if ANY nakshatra/tithi during the day is auspicious, add bonus
@@ -709,8 +709,11 @@ export function getMuhurtaForEvent(eventType: string, panchang: PanchangData): n
 }
 
 export function getQualityBreakdown(eventType: string, panchang: PanchangData): QualityBreakdown {
+  // Always declare at the very top before any usage
+  const nakshatras = panchang.nakshatras?.map(n => n.name) || [];
+  const tithis = panchang.tithis?.map(t => t.name) || [];
   const factors: Array<{ name: string; value: number; reason: string; isPositive: boolean }> = [];
-  
+
   // Start from base score (matching getMuhurtaForEvent logic)
   factors.push({
     name: 'Base Quality',
@@ -718,10 +721,8 @@ export function getQualityBreakdown(eventType: string, panchang: PanchangData): 
     reason: 'Starting baseline for the day',
     isPositive: true
   });
-  
+
   // Get all elements that occur during the day
-  const nakshatras = panchang.nakshatras?.map(n => n.name) || [];
-  const tithis = panchang.tithis?.map(t => t.name) || [];
   const yogas = panchang.yogas?.map(y => y.name) || [];
   const karanas = panchang.karanas?.map(k => k.name) || [];
   
@@ -799,81 +800,124 @@ export function getQualityBreakdown(eventType: string, panchang: PanchangData): 
     });
   }
   
-  // Paksha evaluation
-  if (panchang.paksha === 'Shukla Paksha') {
-    factors.push({
-      name: 'Paksha',
-      value: 10,
-      reason: 'Shukla Paksha (Waxing moon) is favorable for new beginnings',
-      isPositive: true
-    });
-  } else {
-    factors.push({
-      name: 'Paksha',
-      value: 0,
-      reason: 'Krishna Paksha (Waning moon) is neutral',
-      isPositive: false
-    });
+  // Use the same logic as getMuhurtaForEvent
+  // Always declare at the very top before any usage
+  let score = panchang.qualityScore;
+  const breakdownFactors = [];
+  breakdownFactors.push({
+    name: 'Base Quality',
+    value: 50,
+    reason: 'Starting baseline for the day',
+    isPositive: true
+  });
+
+  // Nakshatra bonus
+  let nakshatraBonus = 0;
+  let nakshatraReason = '';
+  if (nakshatras.length > 0) {
+    if (['Rohini', 'Uttara Phalguni', 'Hasta', 'Swati', 'Anuradha', 'Uttara Ashadha', 'Uttara Bhadrapada', 'Revati', 'Pushya', 'Ashwini', 'Mrigashira', 'Shravana', 'Punarvasu'].some(n => nakshatras.includes(n))) {
+      nakshatraBonus = 20;
+      nakshatraReason = `${nakshatras.join(', ')} contains auspicious nakshatra(s)`;
+    }
   }
-  
-  // Event-specific nakshatra bonus
+  breakdownFactors.push({
+    name: 'Nakshatra',
+    value: nakshatraBonus,
+    reason: nakshatraReason || 'No auspicious nakshatra',
+    isPositive: nakshatraBonus > 0
+  });
+  score += nakshatraBonus;
+
+  // Tithi bonus
+  let tithiBonus = 0;
+  let tithiReason = '';
+  if (tithis.length > 0) {
+    if (['Dwitiya', 'Vidhiya', 'Tritiya', 'Thadiya', 'Panchami', 'Sapthami', 'Saptami', 'Ekadasi', 'Ekadashi', 'Trayodasi', 'Trayodashi', 'Dasami', 'Dashami'].some(t => tithis.includes(t))) {
+      tithiBonus = 15;
+      tithiReason = `${tithis.join(', ')} contains auspicious tithi(s)`;
+    }
+  }
+  breakdownFactors.push({
+    name: 'Tithi',
+    value: tithiBonus,
+    reason: tithiReason || 'No auspicious tithi',
+    isPositive: tithiBonus > 0
+  });
+  score += tithiBonus;
+
+  // Paksha bonus
+  let pakshaBonus = 0;
+  let pakshaReason = '';
+  if (panchang.paksha === 'Shukla Paksha') {
+    pakshaBonus = 10;
+    pakshaReason = 'Shukla Paksha (Waxing moon) is favorable for new beginnings';
+  } else {
+    pakshaBonus = 0;
+    pakshaReason = 'Krishna Paksha (Waning moon) is neutral';
+  }
+  breakdownFactors.push({
+    name: 'Paksha',
+    value: pakshaBonus,
+    reason: pakshaReason,
+    isPositive: pakshaBonus > 0
+  });
+  score += pakshaBonus;
+
+  // Event-specific bonus
   let eventBonus = 0;
   let eventReason = '';
-  
   switch (eventType) {
     case 'marriage':
-      if (['Rohini', 'Uttara Phalguni', 'Hasta', 'Swati', 'Anuradha', 'Uttara Ashadha', 'Uttara Bhadrapada', 'Revati'].includes(getCurrentNakshatra(panchang))) {
-        eventBonus = 15;
-        eventReason = `${getCurrentNakshatra(panchang)} is excellent for marriages`;
+      if (nakshatras.some(n => ['Rohini', 'Uttara Phalguni', 'Hasta', 'Swati', 'Anuradha', 'Uttara Ashadha', 'Uttara Bhadrapada', 'Revati'].includes(n))) {
+        eventBonus += 15;
+        eventReason += 'Auspicious nakshatra for marriage. ';
       }
-      if (['Dwitiya', 'Tritiya', 'Panchami', 'Saptami', 'Ekadashi', 'Trayodashi'].includes(getCurrentTithi(panchang))) {
+      if (tithis.some(t => ['Dwitiya', 'Vidhiya', 'Tritiya', 'Thadiya', 'Panchami', 'Sapthami', 'Saptami', 'Ekadasi', 'Ekadashi', 'Trayodasi', 'Trayodashi', 'Dasami', 'Dashami'].includes(t))) {
         eventBonus += 10;
-        eventReason += eventReason ? ` and ${getCurrentTithi(panchang)} is auspicious for weddings` : `${getCurrentTithi(panchang)} is auspicious for weddings`;
+        eventReason += 'Auspicious tithi for marriage.';
       }
       break;
     case 'housewarming':
-      if (['Ashwini', 'Rohini', 'Mrigashira', 'Pushya', 'Hasta', 'Uttara Phalguni', 'Uttara Ashadha'].includes(getCurrentNakshatra(panchang))) {
-        eventBonus = 15;
-        eventReason = `${getCurrentNakshatra(panchang)} is perfect for housewarming ceremonies`;
+      if (nakshatras.some(n => ['Ashwini', 'Rohini', 'Mrigashira', 'Pushya', 'Hasta', 'Uttara Phalguni', 'Uttara Ashadha'].includes(n))) {
+        eventBonus += 15;
+        eventReason += 'Auspicious nakshatra for housewarming.';
       }
       break;
     case 'business':
-      if (['Pushya', 'Hasta', 'Ashwini', 'Rohini', 'Shravana'].includes(getCurrentNakshatra(panchang))) {
-        eventBonus = 15;
-        eventReason = `${getCurrentNakshatra(panchang)} is ideal for business ventures`;
+      if (nakshatras.some(n => ['Pushya', 'Hasta', 'Ashwini', 'Rohini', 'Shravana', 'Sravana'].includes(n))) {
+        eventBonus += 15;
+        eventReason += 'Auspicious nakshatra for business.';
       }
       if (panchang.paksha === 'Shukla Paksha') {
         eventBonus += 10;
-        eventReason += eventReason ? ' and waxing moon favors growth' : 'Waxing moon favors business growth';
+        eventReason += 'Waxing moon favors business growth.';
       }
       break;
     case 'travel':
-      if (['Ashwini', 'Punarvasu', 'Pushya', 'Hasta', 'Anuradha', 'Shravana'].includes(getCurrentNakshatra(panchang))) {
-        eventBonus = 15;
-        eventReason = `${getCurrentNakshatra(panchang)} is favorable for travel and journeys`;
+      if (nakshatras.some(n => ['Ashwini', 'Punarvasu', 'Pushya', 'Hasta', 'Anuradha', 'Shravana', 'Sravana'].includes(n))) {
+        eventBonus += 15;
+        eventReason += 'Auspicious nakshatra for travel.';
       }
       break;
     case 'naming':
-      if (['Ashwini', 'Rohini', 'Mrigashira', 'Punarvasu', 'Pushya', 'Hasta', 'Swati', 'Anuradha', 'Shravana', 'Revati'].includes(getCurrentNakshatra(panchang))) {
-        eventBonus = 15;
-        eventReason = `${getCurrentNakshatra(panchang)} is auspicious for naming ceremonies`;
+      if (nakshatras.some(n => ['Ashwini', 'Rohini', 'Mrigashira', 'Punarvasu', 'Pushya', 'Hasta', 'Swati', 'Anuradha', 'Shravana', 'Revati'].includes(n))) {
+        eventBonus += 15;
+        eventReason += 'Auspicious nakshatra for naming.';
       }
       break;
   }
-  
-  if (eventBonus > 0) {
-    factors.push({
-      name: 'Event Match',
-      value: eventBonus,
-      reason: eventReason,
-      isPositive: true
-    });
-  }
-  
-  // Calculate total from all factors
-  const total = Math.max(0, Math.min(100, factors.reduce((sum, f) => sum + f.value, 0)));
-  
-  return { total, factors };
+  breakdownFactors.push({
+    name: 'Event Match',
+    value: eventBonus,
+    reason: eventReason,
+    isPositive: eventBonus > 0
+  });
+  score += eventBonus;
+
+  // Clamp score
+  score = Math.max(0, Math.min(100, score));
+
+  return { total: score, factors: breakdownFactors };
 }
 
 // Do's and Don'ts based on Panchang

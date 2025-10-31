@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { generateTimeSlots, TimeSlot, icsForSlot } from '../utils/timeslots';
-import { Calendar as CalendarIcon, Clipboard as ClipboardIcon } from 'lucide-react';
+import { Clipboard as ClipboardIcon } from 'lucide-react';
 
 export default function TimeslotList({ dateInfo }: { dateInfo: any }) {
   const slots: TimeSlot[] = useMemo(() =>
@@ -44,16 +44,23 @@ export default function TimeslotList({ dateInfo }: { dateInfo: any }) {
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
   function downloadIcs(slot: TimeSlot, idx: number) {
-    const ics = icsForSlot(dateInfo.panchang?.tithi || undefined, slot);
-    const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `slot-${idx + 1}.ics`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    try {
+      console.log('downloadIcs called with slot:', slot, 'idx:', idx);
+      const ics = icsForSlot(dateInfo.panchang?.tithi || undefined, slot);
+      console.log('Generated ICS:', ics);
+      const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `slot-${idx + 1}.ics`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      console.log('Calendar download completed');
+    } catch (error) {
+      console.error('Error downloading calendar:', error);
+    }
   }
 
   return (
@@ -91,7 +98,20 @@ export default function TimeslotList({ dateInfo }: { dateInfo: any }) {
                     <span className="font-bold text-base text-gray-900 whitespace-nowrap">
                       {start} — {end}
                     </span>
-                    <span className="text-sm font-bold text-green-600 px-2 py-0.5">
+                    <span 
+                      style={{ 
+                        color: '#8B2C19',
+                        backgroundColor: '#FFF8DC',
+                        fontSize: '14px',
+                        fontWeight: 'bold',
+                        padding: '4px 8px',
+                        borderRadius: '4px',
+                        display: 'inline-block',
+                        border: '1px solid #8B2C19',
+                        textShadow: 'none',
+                        boxShadow: 'none'
+                      }}
+                    >
                       {s.score}%
                     </span>
                   </div>
@@ -108,16 +128,45 @@ export default function TimeslotList({ dateInfo }: { dateInfo: any }) {
                     }}
                     title="Copy time"
                   >
-                    <ClipboardIcon className="w-5 h-5 text-gray-600" />
+                    <ClipboardIcon className="w-5 h-5" />
                   </button>
-                  <button
-                    className="p-1.5 hover:bg-gray-100 rounded transition-colors"
-                    onClick={() => downloadIcs(s, displayIdx)}
+                  <span
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      console.log('Calendar clicked for slot:', displayIdx);
+                      downloadIcs(s, displayIdx);
+                    }}
+                    role="button"
+                    tabIndex={0}
                     aria-label="Add to calendar"
                     title="Add to calendar"
+                    style={{ 
+                      fontSize: '24px',
+                      cursor: 'pointer',
+                      padding: '8px',
+                      borderRadius: '4px',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      minWidth: '40px',
+                      minHeight: '40px',
+                      userSelect: 'none',
+                      backgroundColor: '#8B2C19',
+                      border: '2px solid #8B2C19',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#A0341A';
+                      e.currentTarget.style.borderColor = '#A0341A';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = '#8B2C19';
+                      e.currentTarget.style.borderColor = '#8B2C19';
+                    }}
                   >
-                    <CalendarIcon className="w-5 h-5 text-gray-600" />
-                  </button>
+                    📅
+                  </span>
                 </div>
               </div>
               {copiedIndex === displayIdx && (

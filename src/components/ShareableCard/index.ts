@@ -22,3 +22,5 @@ export type { CardSectionProps } from './CardSection';
 
 export { CardGrid, CardGridItem } from './CardGrid';
 export type { CardGridProps, CardGridItemProps } from './CardGrid';
+
+export { default as BeautifulShareCard } from './BeautifulShareCard';
