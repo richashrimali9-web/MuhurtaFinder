@@ -35,8 +35,8 @@ export default function App() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl shadow-md">
-                <Sparkles className="w-6 h-6 text-white" />
+              <div className="flex items-center justify-center" style={{ height: '48px', width: '48px', background: 'transparent', padding: 0 }}>
+                <img src="/astro-event-planner-logo.svg" alt="Astro Event Planner Logo" style={{ height: '32px', width: '32px', objectFit: 'contain', borderRadius: '8px', background: 'transparent', display: 'block' }} />
               </div>
               <div>
                 <h1 className="text-xl font-bold text-gray-900">Astro Event Planner</h1>
@@ -92,7 +92,7 @@ export default function App() {
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
+  <main className="container mx-auto px-4 py-3">
         {currentView === 'finder' && <MuhurtaFinder />}
         {currentView === 'panchang' && <PanchangDisplay />}
         {currentView === 'choghadiya' && <ChoghadiyaViewer />}

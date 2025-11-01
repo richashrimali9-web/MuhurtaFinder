@@ -9,7 +9,6 @@ import { Checkbox } from './ui/checkbox';
 import { Badge } from './ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from './ui/dialog';
 import { calculatePanchang, getMuhurtaForEvent, getQualityBreakdown, eventTypes, getCurrentTithi, getCurrentNakshatra } from '../utils/panchangData';
-import TimeslotList from './TimeslotListClean';
 import { generateTimeSlots } from '../utils/timeslots';
 import { generateCardImage } from '../utils/cardGenerator';
 import { BeautifulShareCard } from './ShareableCard';
@@ -205,8 +204,6 @@ export function MuhurtaFinder() {
             sunset={item.panchang?.sunset || ''}
             moonPhase={''}
             blessing={undefined}
-            branding={undefined}
-            cta={undefined}
             qrCodeUrl={undefined}
           />
         );
@@ -334,18 +331,28 @@ export function MuhurtaFinder() {
   };
 
   return (
-    <main className="container mx-auto px-4 py-8">
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="text-center space-y-2">
-          <h1 className="text-gradient">
-            Plan Your Auspicious Events
-          </h1>
-          <p className="text-muted-foreground">
-            Discover auspicious dates and times for your important life events based on Vedic astrology
-          </p>
+    <>
+      {/* Decorative icons above heading */}
+      <div style={{ position: 'relative', width: '100%', marginBottom: '0.5rem' }}>
+        {/* Diya left */}
+        <span style={{ position: 'absolute', left: 0, top: 0, fontSize: '2.2rem', color: '#e8833d', filter: 'drop-shadow(0 0 8px #ffd700)' }} aria-label="Diya">🪔</span>
+        {/* Shree icon centered, in double quotes, with minimal margin */}
+        <div style={{ textAlign: 'center', fontSize: '2.2rem', fontWeight: 600, color: '#a92e12', letterSpacing: '2px', marginBottom: '-1.2rem', marginTop: '0.2rem' }}>
+          "श्री"
         </div>
-      
+        {/* Diya right */}
+        <span style={{ position: 'absolute', right: 0, top: 0, fontSize: '2.2rem', color: '#e8833d', filter: 'drop-shadow(0 0 8px #ffd700)' }} aria-label="Diya">🪔</span>
+      </div>
+      <main className="container mx-auto px-4 py-8 space-y-6">
+          {/* Centered Heading Before Filters */}
+          <div className="text-center space-y-2">
+            <h1 className="text-gradient">
+              Plan Your Auspicious Events
+            </h1>
+            <p className="text-muted-foreground">
+              Discover auspicious dates and times for your important life events based on Vedic astrology
+            </p>
+          </div>
       {/* Input Section */}
       <Card data-slot="card" className="text-card-foreground flex flex-col gap-6 rounded-xl border p-6 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/20 dark:to-amber-950/20 border-orange-200 dark:border-orange-800">
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -469,25 +476,25 @@ export function MuhurtaFinder() {
           <div className="flex items-center gap-2">
             <Button
               onClick={() => setSortBy('date')}
-              style={sortBy === 'date' ? { 
-                background: 'linear-gradient(to right, #f97316, #d97706)',
+              style={sortBy === 'date' ? {
+                background: 'linear-gradient(to right, rgb(22 126 249), rgb(220 13 13))',
                 color: 'white',
-                borderColor: '#f97316'
+                borderColor: 'rgb(132 6 6)'
               } : {}}
               variant="outline"
-            >
-              By Date
-            </Button>
-            <Button
-              onClick={() => setSortBy('quality')}
-              style={sortBy === 'quality' ? { 
-                background: 'linear-gradient(to right, #f97316, #d97706)',
-                color: 'white',
-                borderColor: '#f97316'
-              } : {}}
-              variant="outline"
-            >
-              By Quality
+          >
+            By Date
+          </Button>
+          <Button
+            onClick={() => setSortBy('quality')}
+            style={sortBy === 'quality' ? {
+              background: 'linear-gradient(to right, rgb(22 126 249), rgb(220 13 13))',
+              color: 'white',
+              borderColor: 'rgb(132 6 6)'
+            } : {}}
+            variant="outline"
+          >
+            By Quality
             </Button>
           </div>
         </div>
@@ -545,7 +552,7 @@ export function MuhurtaFinder() {
                 <Card 
                   key={idx}
                   className={`bg-card text-card-foreground flex flex-col gap-6 rounded-[14px] p-4 transition-all relative ${item.isPast ? 'opacity-60' : ''}`}
-                  style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.1)', border: '1px solid #E8D4B8', borderRadius: '14px', overflow: 'hidden' }}
+                  style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.1)', border: '1px solid #E8D4B8', borderRadius: '14px', overflow: 'hidden', transition: 'background 0.5s, color 0.5s, border-color 0.5s' }}
                 >
                   <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0.04, pointerEvents: 'none', zIndex: 0 }} viewBox="0 0 200 200" fill="none">
                     <g>
@@ -726,6 +733,7 @@ export function MuhurtaFinder() {
                               : slot.score >= 60
                               ? 'text-yellow-600'
                               : 'text-orange-600';
+                            void scoreClass; // Mark as used to avoid unused variable warning
                             
                             return (
                               <div key={slotIdx} className="flex items-center justify-between gap-3">
@@ -782,8 +790,8 @@ export function MuhurtaFinder() {
                                         // Download .ics calendar event for this slot
                                         const slotStart = new Date(slot.start);
                                         const slotEnd = new Date(slot.end);
-                                        const pad = (n) => n.toString().padStart(2, '0');
-                                        const formatICS = (date) => `${date.getUTCFullYear()}${pad(date.getUTCMonth()+1)}${pad(date.getUTCDate())}T${pad(date.getUTCHours())}${pad(date.getUTCMinutes())}00Z`;
+                                        const pad = (n: number) => n.toString().padStart(2, '0');
+                                        const formatICS = (date: Date) => `${date.getUTCFullYear()}${pad(date.getUTCMonth()+1)}${pad(date.getUTCDate())}T${pad(date.getUTCHours())}${pad(date.getUTCMinutes())}00Z`;
                                         const ics = `BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nDTSTART:${formatICS(slotStart)}\nDTEND:${formatICS(slotEnd)}\nSUMMARY:Astro Event Planner Slot\nDESCRIPTION:Suggested time slot for event\nEND:VEVENT\nEND:VCALENDAR`;
                                         const blob = new Blob([ics], { type: 'text/calendar' });
                                         const url = URL.createObjectURL(blob);
@@ -940,8 +948,8 @@ export function MuhurtaFinder() {
           </div>
         )}
       </div>
-    </div>
-    </main>
+      </main>
+    </>
   );
 }
 

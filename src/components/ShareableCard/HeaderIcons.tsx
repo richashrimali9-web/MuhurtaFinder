@@ -1,4 +1,4 @@
-import React from 'react';
+// React JSX components require React import in older versions, but modern JSX transform doesn't need it
 
 // Simple SVG Diya icon
 export const DiyaIcon = ({ size = 32 }) => (

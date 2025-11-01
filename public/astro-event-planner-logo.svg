@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <!-- Gradient background circle -->
+  <defs>
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8B1538;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#DC143C;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#C71585;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF6B9D;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#FFF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#C71585;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Main circle -->
+  <circle cx="32" cy="32" r="30" fill="url(#grad1)"/>
+
+  <!-- Decorative ring -->
+  <circle cx="32" cy="32" r="28" fill="none" stroke="url(#ringGrad)" stroke-width="2" opacity="0.6"/>
+
+  <!-- Top star -->
+  <path d="M32 10 L33.5 14 L37.5 14 L34.2 16.5 L35.7 20.5 L32 18 L28.3 20.5 L29.8 16.5 L26.5 14 L30.5 14 Z" fill="#FFD700"/>
+
+  <!-- Left star -->
+  <path d="M14 30 L15.5 34 L19.5 34 L16.2 36.5 L17.7 40.5 L14 38 L10.3 40.5 L11.8 36.5 L8.5 34 L12.5 34 Z" fill="#FFD700"/>
+
+  <!-- Right star -->
+  <path d="M50 30 L51.5 34 L55.5 34 L52.2 36.5 L53.7 40.5 L50 38 L46.3 40.5 L47.8 36.5 L44.5 34 L48.5 34 Z" fill="#FFD700"/>
+
+  <!-- Text: ASTRO -->
+  <text x="32" y="28" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="white" text-anchor="middle">ASTRO</text>
+
+  <!-- Text: EVENT -->
+  <text x="32" y="36" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="white" text-anchor="middle">EVENT</text>
+
+  <!-- Text: PLANNER -->
+  <text x="32" y="44" font-family="Arial, sans-serif" font-size="7" font-weight="bold" fill="#D4AF37" text-anchor="middle">PLANNER</text>
+
+  <!-- Calendar icon (simplified) -->
+  <rect x="28" y="48" width="8" height="7" rx="1" fill="white"/>
+  <line x1="29" y1="50" x2="29" y2="54" stroke="#8B1538" stroke-width="0.5"/>
+  <line x1="31" y1="50" x2="31" y2="54" stroke="#8B1538" stroke-width="0.5"/>
+  <line x1="33" y1="50" x2="33" y2="54" stroke="#8B1538" stroke-width="0.5"/>
+  <line x1="35" y1="50" x2="35" y2="54" stroke="#8B1538" stroke-width="0.5"/>
+  <rect x="28" y="48" width="8" height="2" rx="1" fill="#8B1538"/>
+</svg>
