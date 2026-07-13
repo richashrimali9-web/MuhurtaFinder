@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Sun, Moon, Info, MapPin } from 'lucide-react';
+import { Sun, Moon, Info, MapPin, ChevronLeft, ChevronRight, Home } from 'lucide-react';
 import { FaWhatsapp, FaFacebookF, FaInstagram, FaTwitter, FaShareAlt } from 'react-icons/fa';
 import { Card } from './ui/card';
 import { Button } from './ui/button';
@@ -33,6 +33,7 @@ export function PanchangDisplay() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showQualityDetails, setShowQualityDetails] = useState(false);
+  const [isLocationOpen, setIsLocationOpen] = useState(false);
 
   // Helper function to generate card image and share via social media
   const shareCardToSocial = async (platform: 'whatsapp' | 'twitter' | 'facebook' | 'instagram') => {
@@ -211,59 +212,206 @@ export function PanchangDisplay() {
         </div>
       )}
       
-      
-      
-  {/* Date and Location Selector */}
-  <Card className="p-6 sm:p-8 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/20 dark:to-amber-950/20 border-2 border-orange-400 dark:border-orange-800 rounded-2xl shadow-lg transition-shadow hover:shadow-xl card-enhanced">
-        <div className="grid gap-4 sm:gap-6 mb-4">
-          <div className="space-y-2">
-            <Label htmlFor="location" className="flex items-center gap-2 text-sm sm:text-base font-semibold">
-              <MapPin className="w-4 h-4" />
-              Location
-            </Label>
-            <select
-              id="location"
-              value={selectedCity.name}
-              onChange={e => {
-                const city = cities.find(c => c.name === e.target.value);
-                if (city) {
-                  setSelectedCity(city);
-                }
-              }}
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-xs sm:text-sm"
-            >
-              {cities.map(city => (
-                <option key={city.name} value={city.name}>{city.name}</option>
-              ))}
-            </select>
-          </div>
-        </div>
+      {/* Date and Location Selector - 3 COLUMN HEADER */}
+      <Card className="p-6 bg-orange-50 border border-amber-300 rounded-2xl shadow-sm">
         
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3">
-          <Button onClick={goToPreviousDay} variant="outline" size="sm" className="w-20 sm:w-auto">
-            ← Prev
-          </Button>
+        {/* GRID: 3 Columns - Location | Navigation | Times */}
+        <div className="flex items-center gap-6 w-full">
           
-          <div className="text-center space-y-1">
-            <h2 className="text-sm sm:text-base md:text-lg whitespace-normal break-words">
-              {selectedDate.toLocaleDateString('en-IN', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
-            </h2>
-            {panchang && (
-              <p className="text-muted-foreground text-xs">
-                {panchang.masa} | {panchang.paksha}
+          {/* COLUMN 1: Location + Date (30%) */}
+          <div className="flex-1 min-w-0 space-y-2">
+            
+            {/* Location Button with Dropdown */}
+            <div className="relative">
+              <label className="block text-xs font-semibold text-gray-700 mb-1">📍 Location</label>
+              <button
+                onClick={() => setIsLocationOpen(!isLocationOpen)}
+                className="w-full flex items-center justify-between px-4 py-2 bg-white rounded-lg border-2 border-amber-300 hover:border-amber-400 transition duration-200"
+              >
+                <span className="font-medium text-gray-800 text-sm truncate">{selectedCity.name}</span>
+                <span className="text-amber-600 text-sm flex-shrink-0">▼</span>
+              </button>
+
+              {/* Dropdown Menu */}
+              {isLocationOpen && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white border-2 border-amber-300 rounded-lg shadow-lg z-50">
+                  {cities.map((city) => (
+                    <button
+                      key={city.name}
+                      onClick={() => {
+                        setSelectedCity(city);
+                        setIsLocationOpen(false);
+                      }}
+                      className="w-full px-3 py-2 text-left hover:bg-amber-50 border-b last:border-b-0 text-gray-800 text-sm transition"
+                    >
+                      {city.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Date Info */}
+            <div>
+              <p className="text-lg font-bold text-gray-900">
+                {selectedDate.toLocaleDateString('en-IN', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
               </p>
-            )}
+              {panchang && (
+                <p className="text-xs text-gray-600">
+                  {panchang.masa} | {panchang.paksha}
+                </p>
+              )}
+            </div>
           </div>
-          
-          <Button onClick={goToNextDay} variant="outline" size="sm" className="w-20 sm:w-auto">
-            Next →
-          </Button>
-        </div>
-        
-        <div className="mt-4 text-center">
-          <Button onClick={goToToday} variant="secondary" size="sm">
-            Today
-          </Button>
+
+          {/* COLUMN 2: Navigation Buttons (35% - Centered) */}
+          <div className="flex justify-center items-center gap-2 flex-1">
+            
+            {/* Previous Button */}
+            <button 
+              onClick={goToPreviousDay}
+              style={{
+                width: '40px',
+                height: '40px',
+                padding: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: '9999px',
+                border: '2px solid #fcd34d',
+                backgroundColor: 'white',
+                cursor: 'pointer',
+                transition: 'background-color 0.15s ease-out, border-color 0.15s ease-out',
+                flexShrink: 0
+              }}
+              onMouseDown={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#fef3c7';
+              }}
+              onMouseUp={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'white';
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'white';
+              }}
+              title="Previous day"
+            >
+              <ChevronLeft className="w-5 h-5 text-amber-700" strokeWidth={3} />
+            </button>
+
+            {/* Today Button - Plain button element for visibility */}
+            <button 
+              onClick={goToToday}
+              type="button"
+              style={{
+                backgroundColor: '#f97316',
+                color: 'white',
+                padding: '12px 24px',
+                borderRadius: '9999px',
+                border: 'none',
+                fontWeight: 'bold',
+                fontSize: '16px',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '12px',
+                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                flexShrink: 0,
+                transition: 'background-color 0.15s ease-out, box-shadow 0.15s ease-out'
+              }}
+              onMouseDown={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.2)';
+              }}
+              onMouseUp={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+              }}
+              title="Go to today"
+            >
+              <Home className="w-7 h-7" />
+              <span>Today</span>
+            </button>
+
+            {/* Next Button */}
+            <button 
+              onClick={goToNextDay}
+              style={{
+                width: '40px',
+                height: '40px',
+                padding: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: '9999px',
+                border: '2px solid #fcd34d',
+                backgroundColor: 'white',
+                cursor: 'pointer',
+                transition: 'background-color 0.15s ease-out, border-color 0.15s ease-out',
+                flexShrink: 0
+              }}
+              onMouseDown={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#fef3c7';
+              }}
+              onMouseUp={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'white';
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'white';
+              }}
+              title="Next day"
+            >
+              <ChevronRight className="w-5 h-5 text-amber-700" strokeWidth={3} />
+            </button>
+          </div>
+
+          {/* COLUMN 3: Times (35% - Right Aligned) - 2x2 Grid */}
+          <div className="grid grid-cols-2 gap-3 flex-1">
+            
+            {/* Sunrise */}
+            <div className="flex items-center gap-2.5 px-4 py-3 bg-white rounded-lg border-2 border-amber-300 hover:border-amber-400 transition shadow-sm">
+              <Sun className="w-7 h-7 text-amber-600 flex-shrink-0" />
+              <div className="text-right">
+                <p className="text-xs text-gray-600 font-semibold uppercase tracking-wide">Sunrise</p>
+                <p className="text-base font-bold text-gray-900">
+                  {panchang?.sunrise ? panchang.sunrise.substring(0, 5) : 'N/A'}
+                </p>
+              </div>
+            </div>
+
+            {/* Sunset */}
+            <div className="flex items-center gap-2.5 px-4 py-3 bg-white rounded-lg border-2 border-amber-300 hover:border-amber-400 transition shadow-sm">
+              <Moon className="w-7 h-7 text-amber-700 flex-shrink-0" />
+              <div className="text-right">
+                <p className="text-xs text-gray-600 font-semibold uppercase tracking-wide">Sunset</p>
+                <p className="text-base font-bold text-gray-900">
+                  {panchang?.sunset ? panchang.sunset.substring(0, 5) : 'N/A'}
+                </p>
+              </div>
+            </div>
+
+            {/* Moonrise */}
+            <div className="flex items-center gap-2.5 px-4 py-3 bg-white rounded-lg border-2 border-indigo-300 hover:border-indigo-400 transition shadow-sm">
+              <Moon className="w-7 h-7 text-indigo-600 flex-shrink-0" />
+              <div className="text-right">
+                <p className="text-xs text-gray-600 font-semibold uppercase tracking-wide">Moonrise</p>
+                <p className="text-base font-bold text-gray-900">
+                  {panchang?.moonrise ? panchang.moonrise.substring(0, 5) : 'N/A'}
+                </p>
+              </div>
+            </div>
+
+            {/* Moonset */}
+            <div className="flex items-center gap-2.5 px-4 py-3 bg-white rounded-lg border-2 border-indigo-300 hover:border-indigo-400 transition shadow-sm">
+              <Moon className="w-7 h-7 text-indigo-600 flex-shrink-0" />
+              <div className="text-right">
+                <p className="text-xs text-gray-600 font-semibold uppercase tracking-wide">Moonset</p>
+                <p className="text-base font-bold text-gray-900">
+                  {panchang?.moonset ? panchang.moonset.substring(0, 5) : 'N/A'}
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </Card>
       
@@ -320,8 +468,11 @@ export function PanchangDisplay() {
         );
       })()}
       
-      {/* Auspiciousness Score (circular progress) */}
-  <Card className="p-6 cursor-pointer rounded-2xl transition-shadow hover:shadow-md glass-card" onClick={() => setShowQualityDetails(!showQualityDetails)}>
+      {/* Auspiciousness Score & Do's/Don'ts Row */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        {/* Auspiciousness Score (circular progress) */}
+        <Card className="p-6 cursor-pointer rounded-2xl transition-shadow hover:shadow-md glass-card" onClick={() => setShowQualityDetails(!showQualityDetails)}>
           <div className="flex flex-col items-center justify-center gap-4 text-center w-full">
           <div>
             <h3 className="text-lg font-semibold">Auspiciousness Score</h3>
@@ -489,6 +640,7 @@ export function PanchangDisplay() {
           </Card>
         );
       })()}
+      </div>
       
       {/* Panchang Details */}
       {/* Basic astronomical timings */}

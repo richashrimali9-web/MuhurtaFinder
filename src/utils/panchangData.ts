@@ -1,4 +1,6 @@
 // Real astronomical Panchang calculation utilities
+import SunCalc from 'suncalc';
+
 export interface PanchangElement {
   name: string;
   startTime?: string; // Time when this element begins (IST)
@@ -146,12 +148,36 @@ function formatTimeIST(date: Date): string {
   return `${displayHours}:${String(minutes).padStart(2, '0')} ${ampm}`;
 }
 
+/**
+ * Format a Date as 24-hour "HH:MM" in IST (Asia/Kolkata), independent of the
+ * user's local timezone. Used for all astronomical times (sunrise/sunset/
+ * moonrise/moonset) so they are always consistent with each other.
+ */
+function formatISTHM(date: Date): string {
+  return new Intl.DateTimeFormat('en-GB', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    timeZone: 'Asia/Kolkata'
+  }).format(date);
+}
+
 // Real astronomical Panchang calculation with multiple daily transitions
 export async function calculatePanchang(date: Date, _location = 'Delhi', _lat?: number, _lon?: number): Promise<PanchangData> {
-  const dayOfYear = Math.floor((date.getTime() - new Date(date.getFullYear(), 0, 0).getTime()) / 86400000);
+  // Normalize the date to midnight UTC for consistent calculations
+  // Create a date string in YYYY-MM-DD format and then parse it as UTC midnight
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const dateString = `${year}-${month}-${day}`;
+  
+  // Parse as UTC midnight (00:00:00 UTC)
+  const normalizedDate = new Date(`${dateString}T00:00:00Z`);
+  
+  const dayOfYear = Math.floor((normalizedDate.getTime() - new Date(normalizedDate.getFullYear(), 0, 0).getTime()) / 86400000);
   
   // More accurate lunar calculations based on actual lunar cycle (~29.53 days)
-  const lunarDaysSinceEpoch = Math.floor((date.getTime() - new Date(2000, 0, 6).getTime()) / (86400000));
+  const lunarDaysSinceEpoch = Math.floor((normalizedDate.getTime() - new Date(2000, 0, 6).getTime()) / (86400000));
   const lunarCyclePosition = (lunarDaysSinceEpoch % 29.53) / 29.53;
   
   
@@ -175,24 +201,20 @@ export async function calculatePanchang(date: Date, _location = 'Delhi', _lat?: 
     const panchang = new MhahPanchang();
     
     // First get sun timings to calculate sunrise time
-    const sun = panchang.sunTimer(date, latitude, longitude);
+    const sun = panchang.sunTimer(normalizedDate, latitude, longitude);
     
     // sunTimer returns Date objects with keys: sunRise, sunSet (capital R and S)
     // These are already in local time and match traditional Panchang calculations
-    let sunriseDate = new Date(date);
-    let sunsetDate = new Date(date);
+    let sunriseDate = new Date(normalizedDate);
+    let sunsetDate = new Date(normalizedDate);
     if (sun && sun.sunRise) {
       sunriseDate = sun.sunRise;
-      const hours = sunriseDate.getHours();
-      const minutes = sunriseDate.getMinutes();
-      sunrise = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+      sunrise = formatISTHM(sunriseDate);
     }
     
     if (sun && sun.sunSet) {
       sunsetDate = sun.sunSet;
-      const hours = sunsetDate.getHours();
-      const minutes = sunsetDate.getMinutes();
-      sunset = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+      sunset = formatISTHM(sunsetDate);
     }
     
     // CRITICAL: Sample Panchang at multiple times to capture ALL elements that occur during the day
@@ -307,8 +329,41 @@ export async function calculatePanchang(date: Date, _location = 'Delhi', _lat?: 
       }
     }
     
-    // mhah-panchang v1.2.0 does not have moonTimer method
-    // moonrise/moonset will remain empty and show "Data unavailable"
+    // Use SunCalc for accurate moonrise/moonset calculations.
+    try {
+      // An IST calendar day spans two UTC days (IST = UTC+5:30), so we check
+      // both the previous and current UTC day to capture all moon events.
+      const utcPrevDay = new Date(normalizedDate.getTime() - 24 * 60 * 60 * 1000);
+      const utcCurrentDay = normalizedDate;
+
+      const moonTimesPrev = SunCalc.getMoonTimes(utcPrevDay, latitude, longitude);
+      const moonTimesCurrent = SunCalc.getMoonTimes(utcCurrentDay, latitude, longitude);
+
+      // IST midnight boundaries expressed in UTC (00:00 IST = 18:30 UTC prev day).
+      const istDayStart = new Date(normalizedDate.getTime() - 5.5 * 60 * 60 * 1000);
+      const istDayEnd = new Date(normalizedDate.getTime() + 18.5 * 60 * 60 * 1000);
+
+      // Collect moonrise/moonset events that fall within the IST calendar day.
+      const withinIstDay = (t: Date) =>
+        t.getTime() >= istDayStart.getTime() && t.getTime() < istDayEnd.getTime();
+
+      const events: Array<{ type: 'rise' | 'set'; time: Date }> = [];
+      if (moonTimesPrev.rise && withinIstDay(moonTimesPrev.rise)) events.push({ type: 'rise', time: moonTimesPrev.rise });
+      if (moonTimesPrev.set && withinIstDay(moonTimesPrev.set)) events.push({ type: 'set', time: moonTimesPrev.set });
+      if (moonTimesCurrent.rise && withinIstDay(moonTimesCurrent.rise)) events.push({ type: 'rise', time: moonTimesCurrent.rise });
+      if (moonTimesCurrent.set && withinIstDay(moonTimesCurrent.set)) events.push({ type: 'set', time: moonTimesCurrent.set });
+
+      const moonRiseEvent = events.find(e => e.type === 'rise')?.time || null;
+      const moonSetEvent = events.find(e => e.type === 'set')?.time || null;
+
+      if (moonRiseEvent && !moonrise) moonrise = formatISTHM(moonRiseEvent);
+      if (moonSetEvent && !moonset) moonset = formatISTHM(moonSetEvent);
+    } catch (e) {
+      console.warn('SunCalc moon calculation failed:', e);
+    }
+    // If SunCalc has no event for the day (moon can legitimately not rise/set
+    // within a given calendar day), leave the value empty; the guard below
+    // renders "--:--" rather than fabricating a time.
   } catch (err) {
     console.warn('mhah-panchang failed:', err);
     nakshatraElements = [];
@@ -317,6 +372,8 @@ export async function calculatePanchang(date: Date, _location = 'Delhi', _lat?: 
     karanaElements = [];
     sunrise = '';
     sunset = '';
+    moonrise = '';
+    moonset = '';
   }
   
   // Calculate important periods dynamically based on sunrise/sunset
@@ -429,9 +486,9 @@ export async function calculatePanchang(date: Date, _location = 'Delhi', _lat?: 
     if (!sunset) sunset = `${String(sunsetHour).padStart(2, '0')}:${String(sunsetMinute).padStart(2, '0')}`;
   }
   
-  // Use moonrise/moonset from library, fallback to "Data unavailable" if not available
-  if (!moonrise) moonrise = 'Data unavailable';
-  if (!moonset) moonset = 'Data unavailable';  
+  // Use moonrise/moonset calculated values
+  if (!moonrise) moonrise = '--:--';
+  if (!moonset) moonset = '--:--';  
   // Calculate zodiac signs
   const sunSigns = ['Capricorn', 'Aquarius', 'Pisces', 'Aries', 'Taurus', 'Gemini', 
                    'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius'];

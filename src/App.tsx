@@ -29,7 +29,21 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen" style={{ background: 'linear-gradient(135deg, #e27b31ff 0%, #e27b31ff  100%)' }}>
+    <div className="min-h-screen" style={{ 
+      background: 'linear-gradient(135deg, #e27b31ff 0%, #e27b31ff  100%)',
+      scrollBehavior: 'smooth'
+    }}>
+      {/* Scrollbar gutter to prevent layout shift */}
+      <style>{`
+        html {
+          scrollbar-gutter: stable;
+          overflow-y: scroll;
+        }
+        body {
+          scrollbar-gutter: stable;
+          overflow-y: scroll;
+        }
+      `}</style>
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-lg border-b border-gray-200 shadow-sm">
         <div className="container mx-auto px-4 py-4">
@@ -92,7 +106,10 @@ export default function App() {
       </header>
 
       {/* Main Content */}
-  <main className="container mx-auto px-4 py-3">
+  <main className="container mx-auto px-4 py-3" style={{ 
+    minHeight: 'calc(100vh - 200px)',
+    transition: 'none !important'
+  }}>
         {currentView === 'finder' && <MuhurtaFinder />}
         {currentView === 'panchang' && <PanchangDisplay />}
         {currentView === 'choghadiya' && <ChoghadiyaViewer />}
